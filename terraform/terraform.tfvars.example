@@ -1,0 +1,3 @@
+instance_type = "t2.micro"
+instance_count = 1
+my_number = 42
