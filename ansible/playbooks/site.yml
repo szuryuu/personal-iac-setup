@@ -1,0 +1,4 @@
+- name: welcome
+  hosts: localhost
+  ansible.builtin.debug:
+    msg: "Hello, Terraform!"
