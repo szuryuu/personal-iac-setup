@@ -26,3 +26,15 @@ variable "start_ip_address" {
 variable "end_ip_address" {
   type = string
 }
+
+variable "delegated_subnet_id" {
+  type = string
+}
+
+variable "private_dns_zone_id" {
+  type = string
+}
+
+variable "private_dns_zone_link" {
+  type = string
+}

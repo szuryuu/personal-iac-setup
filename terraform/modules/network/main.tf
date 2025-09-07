@@ -10,6 +10,27 @@ resource "azurerm_subnet" "subnet" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.network.name
   address_prefixes     = ["10.0.1.0/24"]
+  service_endpoints    = ["Microsoft.Storage"]
+
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_private_dns_zone" "dns_zone" {
+  name                = "minimal-dns-zone"
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
+  name                  = "minimal-dns-zone-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.dns_zone.name
+  virtual_network_id    = azurerm_virtual_network.network.id
 }
 
 resource "azurerm_public_ip" "public_ip" {

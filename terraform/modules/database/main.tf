@@ -1,34 +1,36 @@
-resource "azurerm_mssql_server" "main" {
-  name                         = "main-sqlserver"
-  resource_group_name          = var.resource_group_name
-  location                     = var.location
-  version                      = "12.0"
-  administrator_login          = var.db_admin_login
-  administrator_login_password = var.db_admin_login_password
+resource "azurerm_mysql_flexible_database" "mysql" {
+  name                = "mysql-db"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.mysql_server.name
+  charset             = "utf8"
+  collation           = "utf8_unicode_ci"
 }
 
-resource "azurerm_mssql_firewall_rule" "main" {
-  name                = "main-firewall-rule"
-  server_id           = azurerm_mssql_server.main.id
-  start_ip_address    = var.start_ip_address
-  end_ip_address      = var.end_ip_address
+resource "azurerm_mysql_flexible_server" "mysql_server" {
+  name                   = "mysql-server"
+  resource_group_name    = var.resource_group_name
+  location               = var.location
+  administrator_login    = var.db_admin_login
+  administrator_password = var.db_admin_login_password
+  backup_retention_days  = 7
+  delegated_subnet_id    = var.delegated_subnet_id
+  private_dns_zone_id    = var.private_dns_zone_id
+  sku_name               = "B_Standard_B1s"
+
+  depends_on = [var.private_dns_zone_link]
 }
 
-resource "azurerm_mssql_database" "main" {
-  name         = "mysql-db"
-  server_id    = azurerm_mssql_server.main.id
-  collation    = "SQL_Latin1_General_CP1_CI_AS"
-  license_type = "LicenseIncluded"
-  max_size_gb  = 2
-  sku_name     = "S0"
-  enclave_type = "VBS"
+# SQL Configuration
+resource "azurerm_mysql_flexible_server_configuration" "sql_mode" {
+  name                = "sql_mode"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.mysql_server.name
+  value               = "STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO"
+}
 
-  tags = {
-    foo = "bar"
-  }
-
-  # prevent the possibility of accidental data loss
-  lifecycle {
-    prevent_destroy = true
-  }
+resource "azurerm_mysql_flexible_server_configuration" "time_zone" {
+  name                = "time_zone"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.mysql_server.name
+  value               = "+07:00"
 }
