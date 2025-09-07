@@ -7,7 +7,7 @@ resource "azurerm_mysql_flexible_database" "mysql" {
 }
 
 resource "azurerm_mysql_flexible_server" "mysql_server" {
-  name                   = "mysql-server"
+  name                   = "sz-mysql-server"
   resource_group_name    = var.resource_group_name
   location               = var.location
   administrator_login    = var.db_admin_login
@@ -15,7 +15,7 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   backup_retention_days  = 7
   delegated_subnet_id    = var.delegated_subnet_id
   private_dns_zone_id    = var.private_dns_zone_id
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
 
   depends_on = [var.private_dns_zone_link]
 }

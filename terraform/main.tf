@@ -38,7 +38,7 @@ module "database" {
   db_admin_login_password = var.db_admin_login_password
   start_ip_address        = module.network.public_ip_address
   end_ip_address          = module.network.public_ip_address
-  delegated_subnet_id     = module.network.subnet_id
+  delegated_subnet_id     = module.network.mysql_subnet_id
   private_dns_zone_id     = module.network.private_dns_zone_id
   private_dns_zone_link   = module.network.private_dns_zone_link
 }
