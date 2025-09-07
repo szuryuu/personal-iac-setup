@@ -4,6 +4,11 @@ variable "subscription_id" {
   sensitive   = true
 }
 
+variable "resource_group_name" {
+  type        = string
+  description = "The name of the resource group"
+}
+
 # Database administrator login credentials
 variable "db_admin_login" {
   type        = string

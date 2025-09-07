@@ -1,13 +1,13 @@
 resource "azurerm_linux_virtual_machine" "main" {
   name                = "minimal-vm"
   admin_username      = "adminuser"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
+  resource_group_name = var.resource_group_name
+  location            = var.location
   size                = "Standard_B1s"
 
   disable_password_authentication = true
 
-  network_interface_ids = [azurerm_network_interface.nic.id]
+  network_interface_ids = var.network_interface_ids
 
   admin_ssh_key {
     username   = "adminuser"

@@ -15,7 +15,7 @@ provider "azurerm" {
 }
 
 data "azurerm_resource_group" "main" {
-  name = "devops-intern-sandbox-rg-sandbox-sea"
+  name = var.resource_group_name
 }
 
 # resource "azurerm_resource_group" "main" {
@@ -24,17 +24,24 @@ data "azurerm_resource_group" "main" {
 # }
 
 module "compute" {
-  source = "./modules/compute"
+  source                = "./modules/compute"
+  resource_group_name   = data.azurerm_resource_group.main.name
+  location              = data.azurerm_resource_group.main.location
+  network_interface_ids = module.network.nic_ids
 }
 
 module "database" {
-  source                       = "./modules/database"
-  administrator_login          = var.db_admin_login
-  administrator_login_password = var.db_admin_login_password
-  start_ip_address             = module.network.public_ip
-  end_ip_address               = module.network.public_ip
+  source                  = "./modules/database"
+  resource_group_name     = data.azurerm_resource_group.main.name
+  location                = data.azurerm_resource_group.main.location
+  db_admin_login          = var.db_admin_login
+  db_admin_login_password = var.db_admin_login_password
+  start_ip_address        = module.network.public_ip_address
+  end_ip_address          = module.network.public_ip_address
 }
 
 module "network" {
-  source = "./modules/network"
+  source              = "./modules/network"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
 }
