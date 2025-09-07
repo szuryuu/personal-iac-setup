@@ -53,18 +53,9 @@ resource "azurerm_network_interface" "nic" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.public_ip.id
   }
-
 }
 
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg" {
   subnet_id                 = azurerm_subnet.subnet.id
   network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-output "public_ip_address" {
-  value = azurerm_public_ip.public_ip.ip_address
-}
-
-output "nic_ids" {
-  value = azurerm_network_interface.nic.id
 }
