@@ -31,7 +31,7 @@ resource "azurerm_subnet" "mysql_subnet" {
 }
 
 resource "azurerm_private_dns_zone" "dns_zone" {
-  name                = "mysql.database.azure.com"
+  name                = "privatelink.mysql.database.azure.com"
   resource_group_name = var.resource_group_name
 }
 

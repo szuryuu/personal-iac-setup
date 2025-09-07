@@ -41,6 +41,8 @@ module "database" {
   delegated_subnet_id     = module.network.mysql_subnet_id
   private_dns_zone_id     = module.network.private_dns_zone_id
   private_dns_zone_link   = module.network.private_dns_zone_link
+
+  depends_on = [module.network]
 }
 
 module "network" {

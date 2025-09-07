@@ -7,7 +7,7 @@ resource "azurerm_mysql_flexible_database" "mysql" {
 }
 
 resource "azurerm_mysql_flexible_server" "mysql_server" {
-  name                   = "sz-mysql-server"
+  name                   = "szmysqlserver"
   resource_group_name    = var.resource_group_name
   location               = var.location
   administrator_login    = var.db_admin_login
@@ -16,8 +16,17 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   delegated_subnet_id    = var.delegated_subnet_id
   private_dns_zone_id    = var.private_dns_zone_id
   sku_name               = "B_Standard_B1ms"
+  zone                   = "1"
 
-  depends_on = [var.private_dns_zone_link]
+  # depends_on = [var.private_dns_zone_link]
+}
+
+resource "azurerm_mysql_flexible_server_firewall_rule" "sql_firewall_rule" {
+  name                = "sql_firewall_rule"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.mysql_server.name
+  start_ip_address    = var.start_ip_address
+  end_ip_address      = var.end_ip_address
 }
 
 # SQL Configuration
