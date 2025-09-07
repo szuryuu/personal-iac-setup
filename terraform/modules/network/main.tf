@@ -13,16 +13,18 @@ resource "azurerm_subnet" "subnet" {
   service_endpoints    = ["Microsoft.Storage"]
 
   delegation {
-    name = "delegation"
+    name = "fs"
     service_delegation {
-      name    = "Microsoft.DBforPostgreSQL/flexibleServers"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name = "Microsoft.DBforMySQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
     }
   }
 }
 
 resource "azurerm_private_dns_zone" "dns_zone" {
-  name                = "minimal-dns-zone"
+  name                = "mysql.database.azure.com"
   resource_group_name = var.resource_group_name
 }
 
