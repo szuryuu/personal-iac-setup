@@ -18,6 +18,16 @@ data "azurerm_resource_group" "main" {
   name = var.resource_group_name
 }
 
+data "azurerm_key_vault" "existing" {
+  name                = var.key_vault_name
+  resource_group_name = var.resource_group_name
+}
+
+data "azurerm_key_vault_secret" "ssh_public_key" {
+  name         = "vm-ssh-public-key"
+  key_vault_id = data.azurerm_key_vault.existing.id
+}
+
 # resource "azurerm_resource_group" "main" {
 #   name     = "sz-the-devops"
 #   location = "Southeast Asia"
@@ -28,6 +38,7 @@ module "compute" {
   resource_group_name   = data.azurerm_resource_group.main.name
   location              = data.azurerm_resource_group.main.location
   network_interface_ids = module.network.nic_ids
+  ssh_public_key        = data.azurerm_key_vault_secret.ssh_public_key.value
 }
 
 module "database" {

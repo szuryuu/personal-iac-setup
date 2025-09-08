@@ -9,6 +9,11 @@ variable "resource_group_name" {
   description = "The name of the resource group"
 }
 
+variable "key_vault_name" {
+  type        = string
+  description = "The name of the key vault"
+}
+
 # Database administrator login credentials
 variable "db_admin_login" {
   type        = string

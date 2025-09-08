@@ -12,3 +12,8 @@ variable "network_interface_ids" {
   type        = list(string)
   description = "The IDs of the network interfaces"
 }
+
+variable "ssh_public_key" {
+  type        = string
+  description = "The public SSH key to use for the VM"
+}
