@@ -1,0 +1,79 @@
+# Azure Configuration
+variable "subscription_id" {
+  description = "Azure Subscription ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "resource_group_name" {
+  type        = string
+  description = "The name of the resource group"
+}
+
+# Key Vault
+variable "key_vault_name" {
+  type        = string
+  description = "The name of the key vault"
+}
+
+# Database
+variable "db_admin_login" {
+  type        = string
+  description = "The administrator login for the Azure SQL Server"
+}
+
+variable "db_admin_login_password" {
+  type        = string
+  description = "The administrator login password for the Azure SQL Server"
+}
+
+variable "db_sku_name" {
+  type        = string
+  description = "The SKU name for the Azure SQL Server"
+  default     = "Standard_B1ms"
+}
+
+variable "backup_retention_days" {
+  type        = number
+  description = "The number of days to retain backups"
+  default     = 7
+}
+
+# Environment Configuration
+variable "environment" {
+  type        = string
+  description = "The environment name"
+  default     = "staging"
+}
+
+variable "project_name" {
+  type        = string
+  description = "The name of the project"
+  default     = "my_project"
+}
+
+# Virtual Machine
+variable "vm_size" {
+  type        = string
+  description = "The size of the virtual machine"
+  default     = "Standard_B1s"
+}
+
+# Networking
+variable "vnet_cidr" {
+  type        = string
+  description = "The CIDR block for the virtual network"
+  default     = "10.2.0.0/16"
+}
+
+variable "vm_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the virtual machine subnet"
+  default     = "10.2.1.0/24"
+}
+
+variable "mysql_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the MySQL subnet"
+  default     = "10.2.2.0/24"
+}

@@ -1,5 +1,5 @@
 resource "azurerm_mysql_flexible_database" "mysql" {
-  name                = "mysql-db"
+  name                = "${var.environment}-mysql-db"
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.mysql_server.name
   charset             = "utf8mb4"
@@ -7,18 +7,21 @@ resource "azurerm_mysql_flexible_database" "mysql" {
 }
 
 resource "azurerm_mysql_flexible_server" "mysql_server" {
-  name                   = "szmysqlserver"
+  name                   = "${var.project_name}-${var.environment}-mysql-server"
   resource_group_name    = var.resource_group_name
   location               = var.location
   administrator_login    = var.db_admin_login
   administrator_password = var.db_admin_login_password
-  backup_retention_days  = 7
+  backup_retention_days  = var.backup_retention_days
   delegated_subnet_id    = var.delegated_subnet_id
   private_dns_zone_id    = var.private_dns_zone_id
-  sku_name               = "B_Standard_B1ms"
+  sku_name               = var.db_sku_name
   zone                   = "1"
 
-  # depends_on = [var.private_dns_zone_link]
+  tags = {
+    environment = var.environment
+    project     = var.project_name
+  }
 }
 
 resource "azurerm_mysql_flexible_server_firewall_rule" "sql_firewall_rule" {

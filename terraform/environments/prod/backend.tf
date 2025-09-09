@@ -3,6 +3,6 @@ terraform {
     resource_group_name  = "devops-intern-sandbox-rg-sandbox-sea"
     storage_account_name = "tfstateintern"
     container_name       = "tfstate"
-    key                  = "terraform.tfstate"
+    key                  = "prod.terraform.tfstate"
   }
 }

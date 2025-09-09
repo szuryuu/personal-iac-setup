@@ -1,9 +1,9 @@
 resource "azurerm_linux_virtual_machine" "main" {
-  name                = "minimal-vm"
+  name                = "${var.project_name}-${var.environment}-vm"
   admin_username      = "adminuser"
   resource_group_name = var.resource_group_name
   location            = var.location
-  size                = "Standard_B1s"
+  size                = var.vm_size
 
   disable_password_authentication = true
 
@@ -24,5 +24,10 @@ resource "azurerm_linux_virtual_machine" "main" {
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
+  }
+
+  tags = {
+    environment = var.environment
+    project     = var.project_name
   }
 }

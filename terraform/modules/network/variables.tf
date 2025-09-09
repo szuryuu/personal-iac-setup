@@ -1,3 +1,4 @@
+# Azure Resource Group
 variable "resource_group_name" {
   type        = string
   description = "The name of the resource group"
@@ -6,4 +7,23 @@ variable "resource_group_name" {
 variable "location" {
   type        = string
   description = "The location of the resource group"
+}
+
+# Networking
+variable "vnet_cidr" {
+  type        = string
+  description = "The CIDR block for the virtual network"
+  default     = "10.0.0.0/16"
+}
+
+variable "vm_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the virtual machine subnet"
+  default     = "10.0.1.0/24"
+}
+
+variable "mysql_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the MySQL subnet"
+  default     = "10.0.2.0/24"
 }
