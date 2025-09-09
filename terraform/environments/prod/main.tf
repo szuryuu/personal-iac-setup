@@ -52,6 +52,7 @@ module "database" {
   # Database credentials
   db_admin_login          = var.db_admin_login
   db_admin_login_password = var.db_admin_login_password
+  db_sku_name             = var.db_sku_name
 
   # Network configuration
   start_ip_address      = module.network.public_ip_address
@@ -73,7 +74,7 @@ module "network" {
   location            = data.azurerm_resource_group.main.location
 
   # Network Configuration
-  vnet_cidr         = "10.3.0.0/16"
-  vm_subnet_cidr    = "10.3.1.0/24"
-  mysql_subnet_cidr = "10.3.2.0/24"
+  vnet_cidr         = var.vnet_cidr
+  vm_subnet_cidr    = var.vm_subnet_cidr
+  mysql_subnet_cidr = var.mysql_subnet_cidr
 }

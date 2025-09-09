@@ -30,7 +30,7 @@ variable "db_admin_login_password" {
 variable "db_sku_name" {
   type        = string
   description = "The SKU name for the Azure SQL Server"
-  default     = "Standard_B1ms"
+  default     = "B_Standard_B1ms"
 }
 
 variable "backup_retention_days" {
