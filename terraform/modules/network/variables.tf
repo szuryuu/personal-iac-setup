@@ -27,3 +27,14 @@ variable "mysql_subnet_cidr" {
   description = "The CIDR block for the MySQL subnet"
   default     = "10.0.2.0/24"
 }
+
+# Environment
+variable "environment" {
+  type        = string
+  description = "Environment name (dev, staging, prod)"
+
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be dev, staging, or prod."
+  }
+}

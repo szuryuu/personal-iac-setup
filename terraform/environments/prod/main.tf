@@ -77,4 +77,7 @@ module "network" {
   vnet_cidr         = var.vnet_cidr
   vm_subnet_cidr    = var.vm_subnet_cidr
   mysql_subnet_cidr = var.mysql_subnet_cidr
+
+  # Environment variables
+  environment = var.environment
 }

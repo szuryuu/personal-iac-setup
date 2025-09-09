@@ -1,19 +1,19 @@
 resource "azurerm_virtual_network" "network" {
-  name                = "minimal-vnet"
+  name                = "${var.environment}-vnet"
   resource_group_name = var.resource_group_name
   location            = var.location
   address_space       = [var.vnet_cidr]
 }
 
 resource "azurerm_subnet" "vm_subnet" {
-  name                 = "vm-subnet"
+  name                 = "${var.environment}-vm-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.network.name
   address_prefixes     = [var.vm_subnet_cidr]
 }
 
 resource "azurerm_subnet" "mysql_subnet" {
-  name                 = "mysql-subnet"
+  name                 = "${var.environment}-mysql-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.network.name
   address_prefixes     = [var.mysql_subnet_cidr]
@@ -36,7 +36,7 @@ resource "azurerm_private_dns_zone" "dns_zone" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
-  name                  = "minimal-dns-vnet-link"
+  name                  = "${var.environment}-dns-vnet-link"
   resource_group_name   = var.resource_group_name
   private_dns_zone_name = azurerm_private_dns_zone.dns_zone.name
   virtual_network_id    = azurerm_virtual_network.network.id
@@ -44,7 +44,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
 }
 
 resource "azurerm_public_ip" "public_ip" {
-  name                = "minimal-ip"
+  name                = "${var.environment}-ip"
   resource_group_name = var.resource_group_name
   location            = var.location
   allocation_method   = "Static"
@@ -52,7 +52,7 @@ resource "azurerm_public_ip" "public_ip" {
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  name                = "minimal-nsg"
+  name                = "${var.environment}-nsg"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -74,7 +74,7 @@ resource "azurerm_network_security_group" "nsg" {
 }
 
 resource "azurerm_network_interface" "nic" {
-  name                = "minimal-nic"
+  name                = "${var.environment}-nic"
   resource_group_name = var.resource_group_name
   location            = var.location
 
