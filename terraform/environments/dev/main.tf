@@ -75,6 +75,6 @@ module "network" {
 
   # Network Configuration
   vnet_cidr         = var.vnet_cidr
-  vm_subnet_cidr    = "10.3.1.0/24"
-  mysql_subnet_cidr = "10.3.2.0/24"
+  vm_subnet_cidr    = var.vm_subnet_cidr
+  mysql_subnet_cidr = var.mysql_subnet_cidr
 }
