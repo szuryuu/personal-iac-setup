@@ -1,3 +1,4 @@
+# Azure
 resource_group_name = "YOUR_RESOURCE_GROUP_NAME"
 subscription_id     = "YOUR_SUBSCRIPTION_ID"
 key_vault_name      = "YOUR_KEY_VAULT_NAME"
@@ -5,3 +6,15 @@ key_vault_name      = "YOUR_KEY_VAULT_NAME"
 # Database administrator login credentials
 db_admin_login          = "YOUR_DB_ADMIN_LOGIN"
 db_admin_login_password = "YOUR_DB_ADMIN_LOGIN_PASSWORD"
+
+# Environment variables
+environment           = "YOUR_ENVIRONMENT"
+project_name          = "YOUR_PROJECT_NAME"
+vm_size               = "YOUR_VM_SIZE"
+db_sku_name           = "YOUR_DB_SKU_NAME"
+backup_retention_days = YOUR_BACKUP_RETENTION_DAYS
+
+# Network variables
+vnet_cidr         = "YOUR_VNET_CIDR"
+vm_subnet_cidr    = "YOUR_VM_SUBNET_CIDR"
+mysql_subnet_cidr = "YOUR_MYSQL_SUBNET_CIDR"
