@@ -38,3 +38,10 @@ variable "environment" {
     error_message = "Environment must be dev, staging, or prod."
   }
 }
+
+#
+variable "create_mysql_delegation" {
+  type        = bool
+  description = "Whether to create MySQL subnet delegation. Set to true only when ready to deploy MySQL"
+  default     = false
+}

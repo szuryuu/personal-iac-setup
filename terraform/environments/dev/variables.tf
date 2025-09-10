@@ -16,6 +16,13 @@ variable "key_vault_name" {
   description = "The name of the key vault"
 }
 
+# MySQL Deployment Control
+variable "deploy_mysql" {
+  type        = bool
+  description = "Whether to deploy MySQL resources. Set to false for initial network deployment, true when ready for database"
+  default     = false
+}
+
 # Database
 variable "db_admin_login" {
   type        = string

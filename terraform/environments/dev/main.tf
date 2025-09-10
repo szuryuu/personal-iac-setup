@@ -45,6 +45,8 @@ module "compute" {
 }
 
 module "database" {
+  count = var.deploy_mysql ? 1 : 0
+
   source              = "../../modules/database"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
@@ -77,6 +79,9 @@ module "network" {
   vnet_cidr         = var.vnet_cidr
   vm_subnet_cidr    = var.vm_subnet_cidr
   mysql_subnet_cidr = var.mysql_subnet_cidr
+
+  # MySQL delegation control
+  create_mysql_delegation = var.deploy_mysql
 
   # Environment variables
   environment = var.environment
