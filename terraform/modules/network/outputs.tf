@@ -7,7 +7,11 @@ output "mysql_subnet_id" {
 }
 
 output "private_dns_zone_id" {
-  value = azurerm_private_dns_zone.dns_zone.id
+  description = "The ID of the Private DNS Zone."
+  value = one(concat(
+    azurerm_private_dns_zone.dns_zone.*.id,
+    data.azurerm_private_dns_zone.existing_dns_zone.*.id
+  ))
 }
 
 output "private_dns_zone_link" {
@@ -20,8 +24,4 @@ output "public_ip_address" {
 
 output "nic_ids" {
   value = [azurerm_network_interface.nic.id]
-}
-
-output "mysql_delegation_ready" {
-  value = var.create_mysql_delegation
 }

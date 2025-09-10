@@ -19,31 +19,33 @@ resource "azurerm_subnet" "mysql_subnet" {
   address_prefixes     = [var.mysql_subnet_cidr]
   service_endpoints    = ["Microsoft.Storage"]
 
-  dynamic "delegation" {
-    for_each = var.create_mysql_delegation ? [1] : []
-    content {
-      name = "mysql-delegation"
-      service_delegation {
-        name = "Microsoft.DBforMySQL/flexibleServers"
-        actions = [
-          "Microsoft.Network/virtualNetworks/subnets/join/action",
-        ]
-      }
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.DBforMySQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
     }
   }
 }
 
 resource "azurerm_private_dns_zone" "dns_zone" {
-  count               = var.create_mysql_delegation ? 1 : 0
+  count               = var.create_private_dns_zone ? 1 : 0
+  name                = "privatelink.mysql.database.azure.com"
+  resource_group_name = var.resource_group_name
+}
+
+data "azurerm_private_dns_zone" "existing_dns_zone" {
+  count               = !var.create_private_dns_zone ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"
   resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
-  count                 = var.create_mysql_delegation ? 1 : 0
   name                  = "${var.environment}-dns-vnet-link"
   resource_group_name   = var.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.dns_zone[0].name
+  private_dns_zone_name = var.create_private_dns_zone ? azurerm_private_dns_zone.dns_zone[0].name : data.azurerm_private_dns_zone.existing_dns_zone[0].name
   virtual_network_id    = azurerm_virtual_network.network.id
   registration_enabled  = false
 }
@@ -72,6 +74,10 @@ resource "azurerm_network_security_group" "nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  # tags = {
+  #   environment = "Production"
+  # }
 }
 
 resource "azurerm_network_interface" "nic" {

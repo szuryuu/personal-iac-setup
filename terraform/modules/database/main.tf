@@ -34,14 +34,14 @@ resource "azurerm_mysql_flexible_server_firewall_rule" "sql_firewall_rule" {
 
 # SQL Configuration
 resource "azurerm_mysql_flexible_server_configuration" "sql_mode" {
-  name                = "${var.environment}-sql_mode"
+  name                = "sql_mode"
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.mysql_server.name
   value               = "STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO"
 }
 
 resource "azurerm_mysql_flexible_server_configuration" "time_zone" {
-  name                = "${var.environment}-time_zone"
+  name                = "time_zone"
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.mysql_server.name
   value               = "+07:00"

@@ -40,8 +40,8 @@ variable "environment" {
 }
 
 #
-variable "create_mysql_delegation" {
+variable "create_private_dns_zone" {
   type        = bool
-  description = "Whether to create MySQL subnet delegation. Set to true only when ready to deploy MySQL"
+  description = "If true, creates the Private DNS Zone. If false, uses an existing one."
   default     = false
 }
