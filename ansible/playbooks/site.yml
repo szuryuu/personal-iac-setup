@@ -1,0 +1,11 @@
+---
+- name: Common Task
+  hosts: all
+  become: true
+  tasks:
+    - name: Include common
+      include_tasks: roles/common/hello.yml
+
+- hosts: all
+  roles:
+    - docker

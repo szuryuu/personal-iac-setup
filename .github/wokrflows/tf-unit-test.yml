@@ -10,7 +10,7 @@ permissions:
   contents: write
   actions: write
 
-job:
+jobs:
   terraform-unit-tests:
     name: "Terraform Unit Tests"
     runs-on: ubuntu-latest
