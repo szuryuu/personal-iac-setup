@@ -24,7 +24,7 @@ data "azurerm_key_vault" "existing" {
 }
 
 data "azurerm_key_vault_secret" "ssh_public_key" {
-  name         = "vm-ssh-public-key"
+  name         = "${var.environment}-vm-ssh-public-keys"
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
