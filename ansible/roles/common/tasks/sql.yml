@@ -1,0 +1,15 @@
+- name: install sql
+  apt:
+    name: mysql-server
+    state: present
+
+- name: Install Python MySQL client library (for mysql_user and mysql_db modules)
+  apt:
+    name: python3-pymysql
+    state: present
+
+- name: Start and enable MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes

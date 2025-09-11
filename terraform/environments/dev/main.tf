@@ -28,6 +28,16 @@ data "azurerm_key_vault_secret" "ssh_public_key" {
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
+data "azurerm_key_vault_secret" "db_password" {
+  name         = "${var.environment}-db-password-login-creds"
+  key_vault_id = data.azurerm_key_vault.existing.id
+}
+
+data "azurerm_key_vault_secret" "db_username" {
+  name         = "${var.environment}-db-username-login-creds"
+  key_vault_id = data.azurerm_key_vault.existing.id
+}
+
 module "compute" {
   source              = "../../modules/compute"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -50,8 +60,8 @@ module "database" {
   location            = data.azurerm_resource_group.main.location
 
   # Database credentials
-  db_admin_login          = var.db_admin_login
-  db_admin_login_password = var.db_admin_login_password
+  db_admin_login          = data.azurerm_key_vault_secret.db_username.value
+  db_admin_login_password = data.azurerm_key_vault_secret.db_password.value
   db_sku_name             = var.db_sku_name
 
   # Network configuration

@@ -1,11 +1,30 @@
 ---
-- name: Common Task
+- name: Configure all servers
   hosts: all
   become: true
-  tasks:
-    - name: Include common
-      include_tasks: roles/common/hello.yml
+  gather_facts: true
 
-- hosts: all
+  pre_tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+
   roles:
+    - common
     - docker
+    - monitoring
+    - nginx
+    - security
+
+  post_tasks:
+    - name: Ensure tests are run
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - docker
+        - nginx
+      ignore_errors: true
