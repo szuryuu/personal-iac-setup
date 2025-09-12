@@ -1,13 +1,11 @@
-name: "Terraform Configuration Drift Detection"
+name: "Terraform Destroy All Environments"
 
 on:
-  schedule:
-    - cron: "0 0 * * 1"
   workflow_dispatch:
 
 permissions:
+  id-token: write
   contents: read
-  issues: write
 
 env:
   ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
@@ -16,8 +14,8 @@ env:
   ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
 
 jobs:
-  drift-dev:
-    name: "Drift Check: Dev"
+  destroy-prod:
+    name: "Destroy: Prod"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,22 +30,14 @@ jobs:
         uses: hashicorp/setup-terraform@v3
       - name: Terraform Init
         run: terraform init
-        working-directory: ./terraform/environments/dev
-      - name: Detect Drift (Plan)
-        id: tf-plan
-        run: |
-          terraform plan -detailed-exitcode -no-color || export exitcode=$?
-          if [ -z "$exitcode" ]; then
-            exit 0
-          elif [ $exitcode -eq 2 ]; then
-            echo "::error::Drift detected in Dev environment!"
-            exit 1
-          fi
-        working-directory: ./terraform/environments/dev
+        working-directory: ./terraform/environments/prod
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+        working-directory: ./terraform/environments/prod
 
-  drift-staging:
-    name: "Drift Check: Staging"
-    needs: drift-dev
+  destroy-staging:
+    name: "Destroy: Staging"
+    needs: destroy-prod
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -63,14 +53,28 @@ jobs:
       - name: Terraform Init
         run: terraform init
         working-directory: ./terraform/environments/staging
-      - name: Detect Drift (Plan)
-        id: tf-plan
-        run: |
-          terraform plan -detailed-exitcode -no-color || export exitcode=$?
-          if [ -z "$exitcode" ]; then
-            exit 0
-          elif [ $exitcode -eq 2 ]; then
-            echo "::error::Drift detected in Staging environment!"
-            exit 1
-          fi
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
         working-directory: ./terraform/environments/staging
+
+  destroy-dev:
+    name: "Destroy: Dev"
+    needs: destroy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: "Az CLI login"
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.ARM_CLIENT_ID }}
+          tenant-id: ${{ env.ARM_TENANT_ID }}
+          subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform/environments/dev
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+        working-directory: ./terraform/environments/dev

@@ -4,16 +4,21 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 permissions:
   security-events: write
-  contents: write
-  actions: write
 
 jobs:
   terraform-unit-tests:
-    name: "Terraform Unit Tests"
+    name: "Unit Test: ${{ matrix.environment }}"
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
 
     steps:
       - name: Checkout
@@ -24,22 +29,18 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -backend=false
+        working-directory: ./terraform/environments/${{ matrix.environment }}
 
       - name: Terraform Validate
         run: terraform validate
+        working-directory: ./terraform/environments/${{ matrix.environment }}
 
-      - name: Terraform Format
+      - name: Terraform Format Check
         run: terraform fmt -check -recursive
+        working-directory: ./terraform
 
       - name: Run Checkov action
-        id: checkov
         uses: bridgecrewio/checkov-action@master
         with:
+          directory: ./terraform/environments/${{ matrix.environment }}
           framework: terraform
-
-      - name: Upload SARIF file
-        if: success() || failure()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: results.sarif
-          category: checkov
