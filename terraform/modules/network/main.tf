@@ -74,10 +74,24 @@ resource "azurerm_network_security_group" "nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+}
 
-  # tags = {
-  #   environment = "Production"
-  # }
+resource "azurerm_network_security_group" "mysql_nsg" {
+  name                = "${var.environment}-mysql-nsg"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3306"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "*"
+  }
 }
 
 resource "azurerm_network_interface" "nic" {
@@ -96,4 +110,9 @@ resource "azurerm_network_interface" "nic" {
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg" {
   subnet_id                 = azurerm_subnet.vm_subnet.id
   network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "mysql_subnet_nsg" {
+  subnet_id                 = azurerm_subnet.mysql_subnet.id
+  network_security_group_id = azurerm_network_security_group.mysql_nsg.id
 }

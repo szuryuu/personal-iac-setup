@@ -5,7 +5,7 @@ output "vm_public_ip" {
 
 output "vm_private_ip" {
   description = "The private IP address of the virtual machine."
-  value       = module.main.private_ip_address
+  value       = module.compute.private_ip_address
 }
 
 output "vm_username" {
