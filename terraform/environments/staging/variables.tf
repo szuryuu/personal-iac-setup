@@ -17,16 +17,6 @@ variable "key_vault_name" {
 }
 
 # Database
-variable "db_admin_login" {
-  type        = string
-  description = "The administrator login for the Azure SQL Server"
-}
-
-variable "db_admin_login_password" {
-  type        = string
-  description = "The administrator login password for the Azure SQL Server"
-}
-
 variable "db_sku_name" {
   type        = string
   description = "The SKU name for the Azure SQL Server"
@@ -63,17 +53,17 @@ variable "vm_size" {
 variable "vnet_cidr" {
   type        = string
   description = "The CIDR block for the virtual network"
-  default     = "10.2.0.0/16"
+  default     = "10.1.0.0/16"
 }
 
 variable "vm_subnet_cidr" {
   type        = string
   description = "The CIDR block for the virtual machine subnet"
-  default     = "10.2.1.0/24"
+  default     = "10.1.1.0/24"
 }
 
 variable "mysql_subnet_cidr" {
   type        = string
   description = "The CIDR block for the MySQL subnet"
-  default     = "10.2.2.0/24"
+  default     = "10.1.2.0/24"
 }

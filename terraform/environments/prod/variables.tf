@@ -17,16 +17,6 @@ variable "key_vault_name" {
 }
 
 # Database
-variable "db_admin_login" {
-  type        = string
-  description = "The administrator login for the Azure SQL Server"
-}
-
-variable "db_admin_login_password" {
-  type        = string
-  description = "The administrator login password for the Azure SQL Server"
-}
-
 variable "db_sku_name" {
   type        = string
   description = "The SKU name for the Azure SQL Server"

@@ -29,8 +29,17 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo "${{ secrets.KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
+
+      - name: Generate Ansible Inventory and Scan Host Keys
+        working-directory: ./terraform/environments/${{ matrix.environment }}
+        run: |
+          terraform init
+
+          VM_PUBLIC_IP=$(terraform output -raw vm_public_ip)
+
+          ssh-keyscan -H $VM_PUBLIC_IP >> ~/.ssh/known_hosts
+
+          terraform output -json ansible_inventory > ../../../ansible/inventory/${{ matrix.environment }}.inventory.json
 
       - name: Run Ansible Playbook
         run: ansible-playbook -i ansible/inventory/${{ matrix.environment }}.inventory.json playbooks/site.yml --extra-vars "ansible_sudo_pass=${{ secrets.SUDO_PASSWORD }}"

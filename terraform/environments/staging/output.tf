@@ -5,12 +5,12 @@ output "vm_public_ip" {
 
 output "vm_private_ip" {
   description = "The private IP address of the virtual machine."
-  value       = module.network.private_ip_address
+  value       = module.main.private_ip_address
 }
 
 output "vm_username" {
   description = "The username of the virtual machine."
-  value       = module.vm.username
+  value       = "adminuser"
 }
 
 output "environment" {
@@ -25,7 +25,7 @@ output "project_name" {
 
 output "db_fqdn" {
   description = "The fully qualified domain name of the database."
-  value       = module.database.fqdn
+  value       = module.database.mysql_fqdn
 }
 
 output "ansible_inventory" {

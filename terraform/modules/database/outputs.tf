@@ -10,5 +10,5 @@ output "mysql_server_name" {
 
 output "mysql_server_database_name" {
   description = "The name of the MySQL database."
-  value       = azurerm_mysql_flexible_server.mysql_server.database_name
+  value       = azurerm_mysql_flexible_server.mysql_server.name
 }
