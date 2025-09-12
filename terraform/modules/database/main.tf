@@ -18,7 +18,8 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   sku_name               = var.db_sku_name
   # zone                   = "1"
 
-  geo_redundant_backup_enabled = true
+  # false for cost-saving
+  geo_redundant_backup_enabled = false
 
   public_network_access_enabled = false
 
