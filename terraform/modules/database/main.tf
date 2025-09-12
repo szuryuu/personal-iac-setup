@@ -18,6 +18,8 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   sku_name               = var.db_sku_name
   # zone                   = "1"
 
+  public_network_access_enabled = false
+
   tags = {
     environment = var.environment
     project     = var.project_name
