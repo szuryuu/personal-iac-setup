@@ -58,6 +58,11 @@ variable "private_dns_zone_link" {
   description = "The private DNS zone link"
 }
 
+variable "private_endpoint_subnet_id" {
+  type        = string
+  description = "The ID of the subnet for the private endpoint"
+}
+
 # Environment
 variable "environment" {
   type        = string

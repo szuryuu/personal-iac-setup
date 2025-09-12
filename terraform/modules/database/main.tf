@@ -26,6 +26,31 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   }
 }
 
+resource "azurerm_private_endpoint" "mysql_private_endpoint" {
+  name                = "${var.project_name}-${var.environment}-mysql-pe"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
+
+  private_service_connection {
+    name                           = "${var.project_name}-${var.environment}-mysql-psc"
+    private_connection_resource_id = azurerm_mysql_flexible_server.mysql_server.id
+    subresource_names              = ["mysqlServer"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "mysql-dns-zone-group"
+    private_dns_zone_ids = [var.private_dns_zone_id]
+  }
+
+  tags = {
+    environment = var.environment
+    project     = var.project_name
+  }
+}
+
+# Commenting because db firewall rule is not required and db is not exposed to public network
 # resource "azurerm_mysql_flexible_server_firewall_rule" "sql_firewall_rule" {
 #   name                = "${var.environment}-sql-firewall-rule"
 #   resource_group_name = var.resource_group_name
@@ -47,4 +72,12 @@ resource "azurerm_mysql_flexible_server_configuration" "time_zone" {
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.mysql_server.name
   value               = "+07:00"
+}
+
+# Enable SSL enforcement
+resource "azurerm_mysql_flexible_server_configuration" "require_secure_transport" {
+  name                = "require_secure_transport"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.mysql_server.name
+  value               = "ON"
 }

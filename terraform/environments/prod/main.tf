@@ -71,6 +71,8 @@ module "database" {
   private_dns_zone_id   = module.network.private_dns_zone_id
   private_dns_zone_link = module.network.private_dns_zone_link
 
+  private_endpoint_subnet_id = module.network.mysql_subnet_id
+
   # Environment variables
   environment  = var.environment
   project_name = var.project_name

@@ -53,17 +53,23 @@ variable "vm_size" {
 variable "vnet_cidr" {
   type        = string
   description = "The CIDR block for the virtual network"
-  default     = "10.3.0.0/16"
+  default     = "10.1.0.0/16"
 }
 
 variable "vm_subnet_cidr" {
   type        = string
   description = "The CIDR block for the virtual machine subnet"
-  default     = "10.3.1.0/24"
+  default     = "10.1.1.0/24"
 }
 
 variable "mysql_subnet_cidr" {
   type        = string
   description = "The CIDR block for the MySQL subnet"
-  default     = "10.3.2.0/24"
+  default     = "10.1.2.0/24"
+}
+
+variable "private_endpoint_subnet_id" {
+  type        = string
+  description = "The ID of the subnet for the private endpoint"
+  default     = null
 }
