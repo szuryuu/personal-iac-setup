@@ -29,6 +29,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Environment
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "DEPLOY_ENV=dev" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          fi
+
       - name: Python Setup
         uses: actions/setup-python@v5
         with:
@@ -59,5 +67,14 @@ jobs:
 
           terraform output -json ansible_inventory > ../../../ansible/inventory/${{ matrix.environment }}.inventory.json
 
+      - name: Setup Ansible Vault
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          echo "$ANSIBLE_VAULT_PASSWORD" > .vault_pass
+          chmod 600 .vault_pass
+
       - name: Run Ansible Playbook
-        run: ansible-playbook -i ansible/inventory/${{ matrix.environment }}.inventory.json playbooks/site.yml --extra-vars "ansible_sudo_pass=${{ secrets.SUDO_PASSWORD }}"
+        run: |
+          ansible-playbook -i inventory.json playbooks/site.yml \
+            --vault-password-file .vault_pass
