@@ -26,13 +26,13 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   }
 }
 
-resource "azurerm_mysql_flexible_server_firewall_rule" "sql_firewall_rule" {
-  name                = "${var.environment}-sql-firewall-rule"
-  resource_group_name = var.resource_group_name
-  server_name         = azurerm_mysql_flexible_server.mysql_server.name
-  start_ip_address    = var.start_ip_address
-  end_ip_address      = var.end_ip_address
-}
+# resource "azurerm_mysql_flexible_server_firewall_rule" "sql_firewall_rule" {
+#   name                = "${var.environment}-sql-firewall-rule"
+#   resource_group_name = var.resource_group_name
+#   server_name         = azurerm_mysql_flexible_server.mysql_server.name
+#   start_ip_address    = var.start_ip_address
+#   end_ip_address      = var.end_ip_address
+# }
 
 # SQL Configuration
 resource "azurerm_mysql_flexible_server_configuration" "sql_mode" {
