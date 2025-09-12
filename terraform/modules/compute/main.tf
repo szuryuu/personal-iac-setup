@@ -7,7 +7,7 @@ resource "azurerm_linux_virtual_machine" "main" {
 
   disable_password_authentication = true
 
-  provision_vm_agent = false
+  provision_vm_agent = true
 
   network_interface_ids = var.network_interface_ids
 
