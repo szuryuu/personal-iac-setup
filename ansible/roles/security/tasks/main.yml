@@ -1,0 +1,4 @@
+---
+- name: SSH Configuration
+  import_tasks: ssh.yml
+  tags: SSH

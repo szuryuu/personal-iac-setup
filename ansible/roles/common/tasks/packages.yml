@@ -1,0 +1,73 @@
+---
+- name: Install essential packages
+  apt:
+    name:
+      # Basic system tools
+      - curl
+      - wget
+      - git
+      - vim
+      - nano
+      - htop
+      - tree
+      - unzip
+      - zip
+      - tar
+      - rsync
+
+      # Network tools
+      - net-tools
+      - dnsutils
+      - telnet
+      - nc
+      - nmap
+
+      # Development tools
+      - build-essential
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+
+      # Security tools
+      - fail2ban
+      - ufw
+      - logwatch
+      - chkrootkit
+
+      # System monitoring
+      - iotop
+      - iftop
+      - tcpdump
+      - strace
+      - lsof
+
+      # Python essentials
+      - python3
+      - python3-pip
+      - python3-venv
+
+      # System utilities
+      - cron
+      - logrotate
+      - sudo
+      - psmisc
+      - procps
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Install pip packages
+  pip:
+    name:
+      - setuptools
+      - wheel
+      - requests
+    state: present
+
+- name: Ensure snap is installed (Ubuntu)
+  apt:
+    name: snapd
+    state: present
+  when: ansible_distribution == 'Ubuntu'

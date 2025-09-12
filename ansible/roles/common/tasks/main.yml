@@ -1,1 +1,7 @@
-- import_tasks: update.yml
+- name: Install packages
+  import_tasks: packages.yml
+  tags: packages
+
+- name: Timezone setup
+  import_tasks: timezone.yml
+  tags: timezone
