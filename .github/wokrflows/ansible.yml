@@ -4,12 +4,27 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to run tasks against"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.environment == matrix.environment
 
     steps:
       - uses: actions/checkout@v4
@@ -23,6 +38,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install ansible
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
       - name: Configure SSH
         run: |
