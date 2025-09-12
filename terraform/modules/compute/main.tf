@@ -7,6 +7,8 @@ resource "azurerm_linux_virtual_machine" "main" {
 
   disable_password_authentication = true
 
+  provision_vm_agent = false
+
   network_interface_ids = var.network_interface_ids
 
   admin_ssh_key {
