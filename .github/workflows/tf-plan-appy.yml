@@ -62,6 +62,11 @@ jobs:
       - name: Terraform Init
         run: terraform init
         working-directory: ./terraform/environments/dev
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-dev
+          path: ./terraform/environments/dev/
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         working-directory: ./terraform/environments/dev
@@ -107,6 +112,11 @@ jobs:
       - name: Terraform Init
         run: terraform init
         working-directory: ./terraform/environments/staging
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-staging
+          path: ./terraform/environments/staging/
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         working-directory: ./terraform/environments/staging
@@ -152,6 +162,11 @@ jobs:
       - name: Terraform Init
         run: terraform init
         working-directory: ./terraform/environments/prod
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-production
+          path: ./terraform/environments/prod/
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         working-directory: ./terraform/environments/prod
