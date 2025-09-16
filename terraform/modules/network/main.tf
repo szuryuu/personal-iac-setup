@@ -111,8 +111,3 @@ resource "azurerm_subnet_network_security_group_association" "subnet_nsg" {
   subnet_id                 = azurerm_subnet.vm_subnet.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
-
-resource "azurerm_subnet_network_security_group_association" "mysql_subnet_nsg" {
-  subnet_id                 = azurerm_subnet.mysql_subnet.id
-  network_security_group_id = azurerm_network_security_group.mysql_nsg.id
-}
