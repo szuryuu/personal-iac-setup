@@ -21,7 +21,7 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   # false for cost-saving
   geo_redundant_backup_enabled = false
 
-  public_network_access_enabled = false
+  # public_network_access_enabled = false
 
   tags = {
     environment = var.environment
