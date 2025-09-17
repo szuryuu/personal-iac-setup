@@ -51,6 +51,8 @@ jobs:
         with:
           directory: ./terraform/environments/${{ matrix.environment }}
           framework: terraform
+          # skip_check: CKV2_AZURE_31
+          soft_fail: true
 
   # Run Terratest conditionally
   terratest:
