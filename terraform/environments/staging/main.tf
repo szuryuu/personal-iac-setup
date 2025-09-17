@@ -52,6 +52,10 @@ module "compute" {
   # Environment variables
   environment  = var.environment
   project_name = var.project_name
+
+  depends_on = [
+    module.network
+  ]
 }
 
 module "database" {
@@ -63,14 +67,12 @@ module "database" {
   db_admin_login          = data.azurerm_key_vault_secret.db_username.value
   db_admin_login_password = data.azurerm_key_vault_secret.db_password.value
   db_sku_name             = var.db_sku_name
+  backup_retention_days   = var.backup_retention_days
 
   # Network configuration
   delegated_subnet_id   = module.network.mysql_subnet_id
   private_dns_zone_id   = module.network.private_dns_zone_id
   private_dns_zone_link = module.network.private_dns_zone_link
-
-  # Delete this after testing
-  private_endpoint_subnet_id = module.network.mysql_subnet_id
 
   # Environment variables
   environment  = var.environment
