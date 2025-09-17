@@ -1,3 +1,14 @@
+resource "null_resource" "wait_for_subnet" {
+  provisioner "local-exec" {
+    command = "sleep 30"
+  }
+
+  triggers = {
+    subnet_id = var.delegated_subnet_id
+  }
+}
+
+
 resource "azurerm_mysql_flexible_database" "mysql" {
   name                = "${var.environment}-mysql-db"
   resource_group_name = var.resource_group_name

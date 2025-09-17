@@ -78,7 +78,12 @@ module "database" {
   environment  = var.environment
   project_name = var.project_name
 
-  depends_on = [module.network]
+  depends_on = [
+    module.network,
+    module.network.mysql_subnet_id,
+    module.network.private_dns_zone_id,
+    module.network.private_dns_zone_link
+  ]
 }
 
 module "network" {
