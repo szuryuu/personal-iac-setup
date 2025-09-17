@@ -1,14 +1,12 @@
 name: "Terraform Plan/Apply"
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Terraform Unit Tests"]
+    branches: [main]
+    types:
+      - completed
 
 permissions:
   # id-token: write
