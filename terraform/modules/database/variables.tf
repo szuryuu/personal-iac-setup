@@ -33,16 +33,6 @@ variable "backup_retention_days" {
 }
 
 # Network
-variable "start_ip_address" {
-  type        = string
-  description = "The starting IP address for the firewall rule"
-}
-
-variable "end_ip_address" {
-  type        = string
-  description = "The ending IP address for the firewall rule"
-}
-
 variable "delegated_subnet_id" {
   type        = string
   description = "The ID of the delegated subnet"

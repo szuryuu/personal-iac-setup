@@ -30,6 +30,13 @@ resource "azurerm_subnet" "mysql_subnet" {
   }
 }
 
+resource "azurerm_subnet" "bastion" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.network.name
+  address_prefixes     = [var.bastion_subnet_cidr]
+}
+
 resource "azurerm_private_dns_zone" "dns_zone" {
   count               = var.create_private_dns_zone ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"
@@ -50,20 +57,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
   registration_enabled  = false
 }
 
-resource "azurerm_public_ip" "public_ip" {
-  name                = "${var.environment}-ip"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
+# resource "azurerm_public_ip" "public_ip" {
+#   name                = "${var.environment}-ip"
+#   resource_group_name = var.resource_group_name
+#   location            = var.location
+#   allocation_method   = "Static"
+#   sku                 = "Standard"
+# }
 
-resource "azurerm_subnet" "bastion" {
-  name                 = "AzureBastionSubnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.network.name
-  address_prefixes     = [var.bastion_subnet_cidr]
-}
+
 
 resource "azurerm_public_ip" "bastion_ip" {
   name                = "${var.environment}-bastion-ip"
@@ -85,23 +87,23 @@ resource "azurerm_bastion_host" "bastion" {
   }
 }
 
-resource "azurerm_network_security_group" "nsg" {
-  name                = "${var.environment}-nsg"
-  resource_group_name = var.resource_group_name
-  location            = var.location
+# resource "azurerm_network_security_group" "nsg" {
+#   name                = "${var.environment}-nsg"
+#   resource_group_name = var.resource_group_name
+#   location            = var.location
 
-  security_rule {
-    name                       = "SSH"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-}
+#   security_rule {
+#     name                       = "SSH"
+#     priority                   = 100
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_range     = "22"
+#     source_address_prefix      = "*"
+#     destination_address_prefix = "*"
+#   }
+# }
 
 resource "azurerm_network_security_group" "mysql_nsg" {
   name                = "${var.environment}-mysql-nsg"
@@ -134,10 +136,10 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-resource "azurerm_subnet_network_security_group_association" "subnet_nsg" {
-  subnet_id                 = azurerm_subnet.vm_subnet.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
-}
+# resource "azurerm_subnet_network_security_group_association" "subnet_nsg" {
+#   subnet_id                 = azurerm_subnet.vm_subnet.id
+#   network_security_group_id = azurerm_network_security_group.nsg.id
+# }
 
 resource "azurerm_subnet_network_security_group_association" "mysql_subnet_nsg" {
   subnet_id                 = azurerm_subnet.mysql_subnet.id

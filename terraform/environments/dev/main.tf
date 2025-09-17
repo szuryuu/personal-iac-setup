@@ -65,8 +65,6 @@ module "database" {
   db_sku_name             = var.db_sku_name
 
   # Network configuration
-  start_ip_address      = module.network.public_ip_address
-  end_ip_address        = module.network.public_ip_address
   delegated_subnet_id   = module.network.mysql_subnet_id
   private_dns_zone_id   = module.network.private_dns_zone_id
   private_dns_zone_link = module.network.private_dns_zone_link
@@ -90,8 +88,8 @@ module "network" {
   vnet_cidr               = var.vnet_cidr
   vm_subnet_cidr          = var.vm_subnet_cidr
   mysql_subnet_cidr       = var.mysql_subnet_cidr
-  create_private_dns_zone = true
   bastion_subnet_cidr     = var.bastion_subnet_cidr
+  create_private_dns_zone = true
 
   # Environment variables
   environment = var.environment

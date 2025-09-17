@@ -18,10 +18,15 @@ output "private_dns_zone_link" {
   value = azurerm_private_dns_zone_virtual_network_link.dns_zone_link.id
 }
 
-output "public_ip_address" {
-  value = azurerm_public_ip.public_ip.ip_address
-}
+# output "public_ip_address" {
+#   value = azurerm_public_ip.public_ip.ip_address
+# }
 
 output "nic_ids" {
   value = [azurerm_network_interface.nic.id]
+}
+
+output "bastion_host_name" {
+  description = "The name of the Bastion Host."
+  value       = azurerm_bastion_host.bastion.name
 }
