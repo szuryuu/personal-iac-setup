@@ -71,5 +71,5 @@ variable "mysql_subnet_cidr" {
 variable "private_endpoint_subnet_id" {
   type        = string
   description = "The ID of the subnet for the private endpoint"
-  default     = null # Optional, bisa diisi dari network module
+  default     = null
 }
