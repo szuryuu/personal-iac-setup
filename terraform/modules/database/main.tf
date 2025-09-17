@@ -19,7 +19,8 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   # zone                   = "1"
 
   # false for cost-saving
-  geo_redundant_backup_enabled = false
+  # geo_redundant_backup_enabled = var.environment == "prod" ? true : false
+  geo_redundant_backup_enabled = true
 
   # public_network_access_enabled = false
 
@@ -29,18 +30,19 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   }
 }
 
-# resource "azurerm_private_endpoint" "mysql_private_endpoint" {
-#   name                = "${var.project_name}-${var.environment}-mysql-pe"
-#   location            = var.location
-#   resource_group_name = var.resource_group_name
-#   subnet_id           = var.private_endpoint_subnet_id
+resource "azurerm_private_endpoint" "mysql_private_endpoint" {
+  name                = "${var.project_name}-${var.environment}-mysql-pe"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
 
-#   private_service_connection {
-#     name                           = "${var.project_name}-${var.environment}-mysql-psc"
-#     private_connection_resource_id = azurerm_mysql_flexible_server.mysql_server.id
-#     subresource_names              = ["mysqlServer"]
-#     is_manual_connection           = false
-#   }
+  private_service_connection {
+    name                           = "${var.project_name}-${var.environment}-mysql-psc"
+    private_connection_resource_id = azurerm_mysql_flexible_server.mysql_server.id
+    subresource_names              = ["mysqlServer"]
+    is_manual_connection           = false
+  }
+}
 
 #   private_dns_zone_group {
 #     name                 = "mysql-dns-zone-group"

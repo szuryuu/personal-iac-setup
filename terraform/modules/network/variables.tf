@@ -45,3 +45,9 @@ variable "create_private_dns_zone" {
   description = "If true, creates the Private DNS Zone. If false, uses an existing one."
   default     = false
 }
+
+# Bastion
+variable "bastion_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the bastion subnet"
+}

@@ -73,3 +73,9 @@ variable "private_endpoint_subnet_id" {
   description = "The ID of the subnet for the private endpoint"
   default     = null
 }
+
+variable "bastion_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the bastion subnet"
+  default     = "10.1.3.0/24"
+}
