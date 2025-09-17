@@ -8,10 +8,25 @@ on:
     branches:
       - main
 
+permissions:
+  security-events: write
+  contents: read
+
+env:
+  ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
+  ARM_CLIENT_SECRET: "${{ secrets.AZURE_CLIENT_SECRET }}"
+  ARM_SUBSCRIPTION_ID: "${{ secrets.ARM_SUBSCRIPTION_ID }}"
+  ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
+
 jobs:
   basic-validation:
-    name: "Basic Validation"
+    name: "Basic Validation: ${{ matrix.environment }}"
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,10 +34,23 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Run Basic Tests
-        run: |
-          # Run terraform validate, fmt, and checkov
-          # Same as your current tf-unit-test.yml
+      - name: Terraform Init
+        run: terraform init -backend=false
+        working-directory: ./terraform/environments/${{ matrix.environment }}
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ./terraform/environments/${{ matrix.environment }}
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: ./terraform
+
+      - name: Run Checkov Security Scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ./terraform/environments/${{ matrix.environment }}
+          framework: terraform
 
   # Run Terratest conditionally
   terratest:
@@ -38,10 +66,58 @@ jobs:
       contains(github.event.pull_request.title, '[terratest]') ||
       contains(github.event.pull_request.title, '[full-test]')
 
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [dev, staging, prod]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run Terratest
-        run: |
-          # Full terratest implementation
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform-wrapper: false
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ matrix.environment }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.environment }}-
+            ${{ runner.os }}-go-
+
+      - name: Download Go dependencies
+        run: go mod download
+        working-directory: ./terraform/environments/${{ matrix.environment }}
+
+      - name: Run Terratest (Plan Only)
+        run: go test -v -short -timeout 10m
+        working-directory: ./terraform/environments/${{ matrix.environment }}/test
+        env:
+          TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_resource_group_name: "devops-intern-sandbox-rg-sandbox-sea"
+          TF_VAR_key_vault_name: "rg-intern-devops"
+
+      - name: Run Terratest (Full Integration)
+        if: |
+          github.ref == 'refs/heads/main' ||
+          contains(github.event.pull_request.title, '[full-integration]')
+        run: go test -v -timeout 30m
+        working-directory: ./terraform/environments/${{ matrix.environment }}/test
+        env:
+          TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          TF_VAR_resource_group_name: "devops-intern-sandbox-rg-sandbox-sea"
+          TF_VAR_key_vault_name: "rg-intern-devops"
