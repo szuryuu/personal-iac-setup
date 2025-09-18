@@ -53,7 +53,7 @@ data "azurerm_private_dns_zone" "existing_dns_zone" {
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
   name                  = "${var.environment}-dns-vnet-link"
   resource_group_name   = var.resource_group_name
-  private_dns_zone_name = var.create_private_dns_zone ? azurerm_private_dns_zone.dns_zone[0].name : data.azurerm_private_dns_zone.existing_dns_zone[0].name
+  private_dns_zone_name = (var.create_private_dns_zone || var.is_terratest) ? azurerm_private_dns_zone.dns_zone[0].name : data.azurerm_private_dns_zone.existing_dns_zone[0].name
   virtual_network_id    = azurerm_virtual_network.network.id
   registration_enabled  = false
 }
