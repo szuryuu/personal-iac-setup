@@ -79,3 +79,8 @@ variable "bastion_subnet_cidr" {
   description = "The CIDR block for the bastion subnet"
   default     = "10.1.3.0/24"
 }
+
+variable "is_terratest" {
+  type    = bool
+  default = false
+}

@@ -51,3 +51,9 @@ variable "bastion_subnet_cidr" {
   type        = string
   description = "The CIDR block for the bastion subnet"
 }
+
+variable "is_terratest" {
+  type        = bool
+  description = "A flag to indicate if the environment is being deployed for a Terratest run."
+  default     = false
+}

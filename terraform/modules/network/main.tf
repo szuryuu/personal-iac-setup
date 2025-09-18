@@ -39,13 +39,13 @@ resource "azurerm_subnet" "bastion" {
 }
 
 resource "azurerm_private_dns_zone" "dns_zone" {
-  count               = var.create_private_dns_zone ? 1 : 0
+  count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"
   resource_group_name = var.resource_group_name
 }
 
 data "azurerm_private_dns_zone" "existing_dns_zone" {
-  count               = !var.create_private_dns_zone ? 1 : 0
+  count               = !var.create_private_dns_zone && !var.is_terratest ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"
   resource_group_name = var.resource_group_name
 }

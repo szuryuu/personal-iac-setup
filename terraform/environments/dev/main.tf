@@ -98,6 +98,8 @@ module "network" {
   bastion_subnet_cidr     = var.bastion_subnet_cidr
   create_private_dns_zone = true
 
+  is_terratest = var.is_terratest
+
   # Environment variables
   environment = var.environment
 }

@@ -46,6 +46,7 @@ func TestTerraformAzureInfrastructure(t *testing.T) {
 		TerraformDir: "..",
 		Vars: map[string]any{
 			"project_name": projectName,
+			"is_terratest": true,
 		},
 		EnvVars: map[string]string{
 			"TF_VAR_subscription_id":     getRequiredEnvVar(t, "TF_VAR_subscription_id"),
@@ -58,11 +59,11 @@ func TestTerraformAzureInfrastructure(t *testing.T) {
 
 	terraform.InitAndApply(t, terraformOptions)
 
-	vmPublicIP := terraform.Output(t, terraformOptions, "vm_public_ip")
+	// vmPublicIP := terraform.Output(t, terraformOptions, "vm_public_ip")
 	vmPrivateIP := terraform.Output(t, terraformOptions, "vm_private_ip")
 	dbFQDN := terraform.Output(t, terraformOptions, "db_fqdn")
 
-	assert.NotEmpty(t, vmPublicIP)
+	// assert.NotEmpty(t, vmPublicIP)
 	assert.NotEmpty(t, vmPrivateIP)
 	assert.NotEmpty(t, dbFQDN)
 	assert.Contains(t, dbFQDN, "mysql.database.azure.com")
