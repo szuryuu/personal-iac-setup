@@ -96,7 +96,7 @@ module "network" {
   vm_subnet_cidr          = var.vm_subnet_cidr
   mysql_subnet_cidr       = var.mysql_subnet_cidr
   bastion_subnet_cidr     = var.bastion_subnet_cidr
-  create_private_dns_zone = true
+  create_private_dns_zone = false
 
   # Environment variables
   environment = var.environment
