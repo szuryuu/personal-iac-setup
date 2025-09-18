@@ -22,6 +22,9 @@ func getRequiredEnvVar(t *testing.T, envVar string) string {
 func TestTerraformPlan(t *testing.T) {
 	terraformOptions := &terraform.Options{
 		TerraformDir: "..",
+		Vars: map[string]any{
+			"is_terratest": true,
+		},
 	}
 
 	terraform.Init(t, terraformOptions)
