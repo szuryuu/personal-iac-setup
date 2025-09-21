@@ -95,7 +95,6 @@ module "network" {
   vnet_cidr               = var.vnet_cidr
   vm_subnet_cidr          = var.vm_subnet_cidr
   mysql_subnet_cidr       = var.mysql_subnet_cidr
-  bastion_subnet_cidr     = var.bastion_subnet_cidr
   create_private_dns_zone = true
 
   is_terratest = var.is_terratest

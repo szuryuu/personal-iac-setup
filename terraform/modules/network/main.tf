@@ -30,14 +30,6 @@ resource "azurerm_subnet" "mysql_subnet" {
   }
 }
 
-# skip: CKV2_AZURE_31: AzureBastionSubnet cannot have an NSG attached.
-resource "azurerm_subnet" "bastion" {
-  name                 = "AzureBastionSubnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.network.name
-  address_prefixes     = [var.bastion_subnet_cidr]
-}
-
 resource "azurerm_private_dns_zone" "dns_zone" {
   count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"
@@ -58,26 +50,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
   registration_enabled  = false
 }
 
-resource "azurerm_public_ip" "bastion_ip" {
-  name                = "${var.environment}-bastion-ip"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_bastion_host" "bastion" {
-  name                = "${var.environment}-bastion"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-
-  ip_configuration {
-    name                 = "configuration"
-    subnet_id            = azurerm_subnet.bastion.id
-    public_ip_address_id = azurerm_public_ip.bastion_ip.id
-  }
-}
-
 # Network Security Group
 resource "azurerm_network_security_group" "vm_nsg" {
   name                = "${var.environment}-vm-nsg"
@@ -85,14 +57,14 @@ resource "azurerm_network_security_group" "vm_nsg" {
   location            = var.location
 
   security_rule {
-    name                       = "SSH"
+    name                       = "SSH-Boundary"
     priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = var.bastion_subnet_cidr
+    source_address_prefix      = ""
     destination_address_prefix = "*"
   }
 

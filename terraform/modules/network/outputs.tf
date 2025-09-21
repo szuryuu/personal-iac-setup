@@ -25,8 +25,3 @@ output "private_dns_zone_link" {
 output "nic_ids" {
   value = [azurerm_network_interface.nic.id]
 }
-
-output "bastion_host_name" {
-  description = "The name of the Bastion Host."
-  value       = azurerm_bastion_host.bastion.name
-}

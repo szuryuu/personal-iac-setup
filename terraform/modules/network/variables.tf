@@ -46,12 +46,6 @@ variable "create_private_dns_zone" {
   default     = false
 }
 
-# Bastion
-variable "bastion_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the bastion subnet"
-}
-
 variable "is_terratest" {
   type        = bool
   description = "A flag to indicate if the environment is being deployed for a Terratest run."
