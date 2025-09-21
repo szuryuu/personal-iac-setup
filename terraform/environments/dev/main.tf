@@ -102,3 +102,17 @@ module "network" {
   # Environment variables
   environment = var.environment
 }
+
+module "boundary" {
+  source                    = "../../modules/boundary"
+  deploy_boundary_worker    = true
+  resource_group_name       = data.azurerm_resource_group.main.name
+  location                  = data.azurerm_resource_group.main.location
+  environment               = var.environment
+  project_name              = var.project_name
+  boundary_worker_subnet_id = module.network.boundary_worker_subnet_id
+  ssh_public_key            = data.azurerm_key_vault_secret.ssh_public_key.value
+
+  boundary_worker_token = var.boundary_worker_token
+  boundary_cluster_url  = "https://<YOUR_BOUNDARY_URL>"
+}

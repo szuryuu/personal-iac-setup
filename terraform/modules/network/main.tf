@@ -64,7 +64,7 @@ resource "azurerm_network_security_group" "vm_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = ""
+    source_address_prefix      = var.boundary_subnet_cidr
     destination_address_prefix = "*"
   }
 
@@ -164,4 +164,12 @@ resource "azurerm_subnet_network_security_group_association" "vm_subnet_nsg" {
 resource "azurerm_subnet_network_security_group_association" "mysql_subnet_nsg" {
   subnet_id                 = azurerm_subnet.mysql_subnet.id
   network_security_group_id = azurerm_network_security_group.mysql_nsg.id
+}
+
+# Boundary
+resource "azurerm_subnet" "boundary_worker_subnet" {
+  name                 = "${var.environment}-boundary-worker-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.network.name
+  address_prefixes     = [var.boundary_worker_subnet_cidr]
 }

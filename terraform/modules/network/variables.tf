@@ -39,7 +39,6 @@ variable "environment" {
   }
 }
 
-#
 variable "create_private_dns_zone" {
   type        = bool
   description = "If true, creates the Private DNS Zone. If false, uses an existing one."
@@ -50,4 +49,16 @@ variable "is_terratest" {
   type        = bool
   description = "A flag to indicate if the environment is being deployed for a Terratest run."
   default     = false
+}
+
+variable "boundary_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the Boundary subnet"
+  default     = "10.0.3.0/24"
+}
+
+variable "boundary_worker_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the Boundary worker subnet"
+  default     = "10.0.4.0/24"
 }

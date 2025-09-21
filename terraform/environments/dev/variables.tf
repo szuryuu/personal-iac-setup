@@ -84,3 +84,8 @@ variable "is_terratest" {
   type    = bool
   default = false
 }
+
+variable "boundary_worker_token" {
+  type        = string
+  description = "The token for the Boundary worker"
+}
