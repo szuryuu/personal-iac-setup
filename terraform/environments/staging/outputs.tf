@@ -37,7 +37,7 @@ output "ansible_inventory" {
           ansible_host                 = module.compute.private_ip_address
           ansible_user                 = "adminuser"
           ansible_ssh_private_key_file = "~/.ssh/id_rsa"
-          ansible_ssh_common_args      = "-o ProxyCommand='az network bastion tunnel --name ${module.network.bastion_host_name} --resource-group ${var.resource_group_name} --target-resource-id ${module.compute.vm_id} --resource-port %p --port %p'"
+          ansible_ssh_common_args      = "-o ProxyCommand='boundary connect ssh -target-id ttcp_xxxxxxxxxx -listen-port %p -- %h'"
           environment                  = var.environment
           project_name                 = var.project_name
           mysql_host                   = module.database.mysql_fqdn
