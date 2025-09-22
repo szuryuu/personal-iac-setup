@@ -53,3 +53,10 @@ variable "ssh_public_key" {
   type        = string
   description = "SSH public key for Boundary worker"
 }
+
+# Virtual Machine
+variable "vm_size" {
+  type        = string
+  description = "The size of the virtual machine"
+  default     = "Standard_B1s"
+}

@@ -30,6 +30,13 @@ resource "azurerm_subnet" "mysql_subnet" {
   }
 }
 
+resource "azurerm_subnet" "boundary_controller_subnet" {
+  name                 = "${var.environment}-boundary-controller-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.network.name
+  address_prefixes     = [var.boundary_subnet_cidr]
+}
+
 resource "azurerm_private_dns_zone" "dns_zone" {
   count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"

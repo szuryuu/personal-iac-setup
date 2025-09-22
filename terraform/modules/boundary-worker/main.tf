@@ -4,7 +4,7 @@ resource "azurerm_linux_virtual_machine" "boundary_worker" {
   admin_username      = "adminuser"
   resource_group_name = var.resource_group_name
   location            = var.location
-  size                = "Standard_B1s"
+  size                = var.vm_size
 
   disable_password_authentication = true
   network_interface_ids           = [azurerm_network_interface.boundary_worker_nic[0].id]
