@@ -25,3 +25,8 @@ output "private_dns_zone_link" {
 output "nic_ids" {
   value = [azurerm_network_interface.nic.id]
 }
+
+output "boundary_worker_subnet_id" {
+  description = "The ID of the Boundary worker subnet."
+  value       = azurerm_subnet.boundary_worker_subnet.id
+}

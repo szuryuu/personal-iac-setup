@@ -64,7 +64,7 @@ resource "azurerm_network_security_group" "vm_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = var.boundary_subnet_cidr
+    source_address_prefix      = var.boundary_worker_subnet_cidr
     destination_address_prefix = "*"
   }
 
