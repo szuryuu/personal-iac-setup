@@ -28,6 +28,7 @@ resource "azurerm_linux_virtual_machine" "boundary_controller" {
 
   custom_data = base64encode(templatefile("${path.module}/controller-init.sh", {
     db_connection_string = var.db_connection_string
+    environment          = var.environment
   }))
 
   tags = {
