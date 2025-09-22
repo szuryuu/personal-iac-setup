@@ -85,11 +85,11 @@ variable "boundary_cluster_url" {
   default     = "https://<YOUR_BOUNDARY_URL>"
 }
 
-variable "boundary_worker_token" {
-  type        = string
-  description = "The token for the Boundary worker"
-  sensitive   = true
-}
+# variable "boundary_worker_token" {
+#   type        = string
+#   description = "The token for the Boundary worker"
+#   sensitive   = true
+# }
 
 variable "boundary_target_id" {
   type        = string

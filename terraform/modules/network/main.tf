@@ -57,15 +57,8 @@ resource "azurerm_network_security_group" "vm_nsg" {
   location            = var.location
 
   security_rule {
-    name                       = "Boundary-Worker-Access"
-    priority                   = 90
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_ranges    = ["22", "3389"]
-    source_address_prefix      = var.boundary_worker_subnet_cidr
-    destination_address_prefix = "*"
+    name     = "Boundary-Worker-Access"
+    priority = 90
   }
 
   security_rule {
@@ -76,7 +69,18 @@ resource "azurerm_network_security_group" "vm_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = var.boundary_worker_subnet_cidr
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "SSH-Development"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "Internet"
     destination_address_prefix = "*"
   }
 
@@ -186,6 +190,15 @@ resource "azurerm_network_security_group" "boundary_worker_nsg" {
   }
 }
 
+resource "azurerm_public_ip" "vm_public_ip" {
+  name                = "${var.environment}-vm-pip"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+
 resource "azurerm_network_interface" "nic" {
   name                = "${var.environment}-nic"
   resource_group_name = var.resource_group_name
@@ -195,6 +208,7 @@ resource "azurerm_network_interface" "nic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.vm_subnet.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.vm_public_ip.id
   }
 }
 
@@ -209,9 +223,9 @@ resource "azurerm_subnet_network_security_group_association" "mysql_subnet_nsg" 
 }
 
 # Boundary
-resource "azurerm_subnet" "boundary_worker_subnet" {
-  name                 = "${var.environment}-boundary-worker-subnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.network.name
-  address_prefixes     = [var.boundary_worker_subnet_cidr]
-}
+# resource "azurerm_subnet" "boundary_worker_subnet" {
+#   name                 = "${var.environment}-boundary-worker-subnet"
+#   resource_group_name  = var.resource_group_name
+#   virtual_network_name = azurerm_virtual_network.network.name
+#   address_prefixes     = [var.boundary_worker_subnet_cidr]
+# }

@@ -51,14 +51,14 @@ variable "is_terratest" {
   default     = false
 }
 
-variable "boundary_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the Boundary subnet"
-  default     = "10.0.3.0/24"
-}
+# variable "boundary_subnet_cidr" {
+#   type        = string
+#   description = "The CIDR block for the Boundary subnet"
+#   default     = "10.0.3.0/24"
+# }
 
-variable "boundary_worker_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the Boundary worker subnet"
-  default     = "10.0.4.0/24"
-}
+# variable "boundary_worker_subnet_cidr" {
+#   type        = string
+#   description = "The CIDR block for the Boundary worker subnet"
+#   default     = "10.0.4.0/24"
+# }
