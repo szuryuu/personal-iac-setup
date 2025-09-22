@@ -105,7 +105,7 @@ module "network" {
 
 module "boundary" {
   source                    = "../../modules/boundary"
-  deploy_boundary_worker    = true
+  deploy_boundary_worker    = false
   resource_group_name       = data.azurerm_resource_group.main.name
   location                  = data.azurerm_resource_group.main.location
   environment               = var.environment

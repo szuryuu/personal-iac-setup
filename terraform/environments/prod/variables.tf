@@ -79,7 +79,20 @@ variable "is_terratest" {
   default = false
 }
 
+variable "boundary_cluster_url" {
+  type        = string
+  description = "Boundary cluster URL"
+  default     = "https://<YOUR_BOUNDARY_URL>"
+}
+
 variable "boundary_worker_token" {
   type        = string
   description = "The token for the Boundary worker"
+  sensitive   = true
+}
+
+variable "boundary_target_id" {
+  type        = string
+  description = "The ID of the Boundary target"
+  default     = null
 }
