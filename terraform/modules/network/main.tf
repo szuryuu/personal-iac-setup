@@ -205,7 +205,6 @@ resource "azurerm_public_ip" "vm_public_ip" {
   sku                 = "Standard"
 }
 
-
 resource "azurerm_network_interface" "nic" {
   name                = "${var.environment}-nic"
   resource_group_name = var.resource_group_name
