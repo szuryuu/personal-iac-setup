@@ -42,6 +42,7 @@ module "compute" {
   source              = "../../modules/compute"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
+  vm_size             = var.vm_size
 
   # Network configuration
   network_interface_ids = module.network.nic_ids
@@ -103,16 +104,34 @@ module "network" {
   environment = var.environment
 }
 
-# module "boundary" {
-#   source                    = "../../modules/boundary"
-#   deploy_boundary_worker    = false
-#   resource_group_name       = data.azurerm_resource_group.main.name
-#   location                  = data.azurerm_resource_group.main.location
-#   environment               = var.environment
-#   project_name              = var.project_name
-#   boundary_worker_subnet_id = module.network.boundary_worker_subnet_id
-#   ssh_public_key            = data.azurerm_key_vault_secret.ssh_public_key.value
+module "boundary-controller" {
+  source              = "../../modules/boundary-controller"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  vm_size             = var.vm_size
 
-#   boundary_worker_token = var.boundary_worker_token
-#   boundary_cluster_url  = "https://<YOUR_BOUNDARY_URL>"
-# }
+  db_connection_string = data.azurerm_key_vault.existing
+
+  # SSH public key
+  ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value
+
+  # Environment variables
+  environment = var.environment
+}
+
+module "boundary-worker" {
+  source              = "../../modules/boundary-worker"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  vm_size             = var.vm_size
+
+  boundary_cluster_url      = module.network.boundary_cluster_url
+  boundary_worker_subnet_id = module.network.boundary_worker_subnet_id
+  boundary_worker_token     = module.network.boundary_worker_token
+
+  # SSH public key
+  ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value
+
+  # Environment variables
+  environment = var.environment
+}
