@@ -83,7 +83,7 @@ variable "is_terratest" {
 variable "boundary_cluster_url" {
   type        = string
   description = "Boundary cluster URL"
-  default     = "https://<YOUR_BOUNDARY_URL>"
+  default     = "https://10.2.3.0:9200"
 }
 
 variable "boundary_target_id" {

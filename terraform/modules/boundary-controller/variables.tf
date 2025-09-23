@@ -35,7 +35,7 @@ variable "ssh_public_key" {
 variable "deploy_boundary_worker" {
   type        = bool
   description = "Deploy self-managed Boundary worker"
-  default     = false
+  default     = true
 }
 
 # Database Configuration

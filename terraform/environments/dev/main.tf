@@ -125,7 +125,7 @@ module "boundary-worker" {
   location            = data.azurerm_resource_group.main.location
   vm_size             = var.vm_size
 
-  boundary_cluster_url      = module.network.boundary_cluster_url
+  boundary_cluster_url      = "https://${var.boundary_cluster_url}"
   boundary_worker_subnet_id = module.network.boundary_worker_subnet_id
   boundary_worker_token     = module.network.boundary_worker_token
 
