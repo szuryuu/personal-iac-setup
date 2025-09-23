@@ -12,7 +12,7 @@ resource "azurerm_linux_virtual_machine" "boundary_controller" {
     public_key = var.ssh_public_key
   }
 
-  network_interface_ids = [azurerm_network_interface.boundary_controller.id]
+  network_interface_ids = var.network_interface_ids
 
   os_disk {
     caching              = "ReadWrite"

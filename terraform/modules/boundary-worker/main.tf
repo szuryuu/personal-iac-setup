@@ -7,7 +7,7 @@ resource "azurerm_linux_virtual_machine" "boundary_worker" {
   size                = var.vm_size
 
   disable_password_authentication = true
-  network_interface_ids           = [azurerm_network_interface.boundary_worker_nic[0].id]
+  network_interface_ids           = var.network_interface_ids
 
   admin_ssh_key {
     username   = "adminuser"

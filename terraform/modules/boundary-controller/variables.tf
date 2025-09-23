@@ -43,3 +43,8 @@ variable "db_connection_string" {
   type        = string
   description = "Database connection string"
 }
+
+variable "network_interface_ids" {
+  type        = list(string)
+  description = "The IDs of the network interfaces"
+}

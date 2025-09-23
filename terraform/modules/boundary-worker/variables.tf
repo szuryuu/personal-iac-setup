@@ -60,3 +60,8 @@ variable "vm_size" {
   description = "The size of the virtual machine"
   default     = "Standard_B1s"
 }
+
+variable "network_interface_ids" {
+  type        = list(string)
+  description = "The IDs of the network interfaces"
+}
