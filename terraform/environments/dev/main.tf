@@ -108,21 +108,24 @@ module "boundary" {
   source              = "../../modules/boundary"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
-  vm_size             = var.vm_size
+  vm_size             = var.boundary_vm_size
 
-  network_interface_ids = module.network.nic_ids
+  # Network configuration
+  network_interface_ids = [module.boundary.boundary_nic_id]
+  boundary_subnet_id    = module.network.boundary_subnet_id
 
-  db_connection_string = data.azurerm_key_vault.existing
-
-  boundary_subnet_id = var
+  # Database connection string
+  db_connection_string = "mysql://${data.azurerm_key_vault_secret.db_username.value}:${urlencode(data.azurerm_key_vault_secret.db_password.value)}@${module.database.mysql_fqdn}:3306/boundary"
 
   # SSH public key
   ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value
 
   # Environment variables
-  environment = var.environment
+  environment  = var.environment
+  project_name = var.project_name
 
   depends_on = [
-    module.network
+    module.network,
+    module.database
   ]
 }
