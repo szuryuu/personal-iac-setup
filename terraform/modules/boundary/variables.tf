@@ -59,8 +59,3 @@ variable "network_interface_ids" {
   type        = list(string)
   description = "The IDs of the network interfaces"
 }
-
-variable "worker_auth_key" {
-  type        = string
-  description = "Worker authentication key"
-}

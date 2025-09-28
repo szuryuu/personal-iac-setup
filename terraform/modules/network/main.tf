@@ -185,6 +185,18 @@ resource "azurerm_network_security_group" "boundary_worker_nsg" {
   }
 
   security_rule {
+    name                       = "Boundary-API"
+    priority                   = 105
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9200"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
     name                       = "SSH-Management"
     priority                   = 110
     direction                  = "Inbound"

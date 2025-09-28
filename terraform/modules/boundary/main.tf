@@ -29,7 +29,7 @@ resource "azurerm_linux_virtual_machine" "boundary_combined" {
     db_connection_string = var.db_connection_string
     environment          = var.environment
     project_name         = var.project_name
-    worker_auth_key      = var.worker_auth_key
+    worker_auth_key      = random_password.worker_auth_key.result
   }))
 
   tags = {
