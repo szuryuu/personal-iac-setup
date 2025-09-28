@@ -30,6 +30,7 @@ resource "azurerm_linux_virtual_machine" "boundary_combined" {
     environment          = var.environment
     project_name         = var.project_name
     worker_auth_key      = random_password.worker_auth_key.result
+    BOUNDARY_VERSION     = "0.19.3"
   }))
 
   tags = {

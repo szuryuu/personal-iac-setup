@@ -6,7 +6,6 @@ apt-get update
 apt-get install -y curl unzip mysql-client
 
 # Install Boundary worker
-BOUNDARY_VERSION="0.19.3"
 curl -fsSL https://releases.hashicorp.com/boundary/${BOUNDARY_VERSION}/boundary_${BOUNDARY_VERSION}_linux_amd64.zip -o boundary.zip
 unzip boundary.zip
 sudo mv boundary /usr/local/bin/

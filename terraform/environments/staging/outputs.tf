@@ -58,7 +58,7 @@ output "ansible_inventory" {
           ansible_host                 = module.compute.private_ip_address
           ansible_user                 = "adminuser"
           ansible_ssh_private_key_file = "~/.ssh/id_rsa"
-          ansible_ssh_common_args      = "-o ProxyCommand='boundary connect ssh -target-id ${var.boundary_target_id} -listen-port %p -- %h'"
+          ansible_ssh_common_args      = var.boundary_target_id != null ? "-o ProxyCommand='boundary connect ssh -target-id ${var.boundary_target_id} -listen-port %p -- %h'" : ""
           environment                  = var.environment
           project_name                 = var.project_name
           mysql_host                   = module.database.mysql_fqdn
