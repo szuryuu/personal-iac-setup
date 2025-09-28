@@ -17,7 +17,7 @@ sudo mkdir -p /etc/boundary /opt/boundary/data
 sudo chown -R boundary:boundary /etc/boundary /opt/boundary
 
 ROOT_KEY=$(openssl rand -base64 32)
-WORKER_AUTH_KEY=$(openssl rand -base64 32)
+# WORKER_AUTH_KEY=$(openssl rand -base64 32)
 RECOVERY_KEY=$(openssl rand -base64 32)
 
 PUBLIC_IP=$(curl -H Metadata:true --noproxy "*" \
@@ -58,7 +58,7 @@ kms "aead" {
 kms "aead" {
   purpose    = "worker-auth"
   aead_type  = "aes-gcm"
-  key        = "$WORKER_AUTH_KEY"
+  key        = "${worker_auth_key}"
   key_id     = "worker_auth"
 }
 
@@ -98,7 +98,7 @@ listener "tcp" {
 kms "aead" {
   purpose   = "worker-auth"
   aead_type = "aes-gcm"
-  key       = "$WORKER_AUTH_KEY"
+  key       = "${worker_auth_key}"
   key_id    = "worker_auth"
 }
 
