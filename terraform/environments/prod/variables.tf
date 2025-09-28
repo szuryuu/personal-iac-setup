@@ -33,13 +33,13 @@ variable "backup_retention_days" {
 variable "environment" {
   type        = string
   description = "The environment name"
-  default     = "staging"
+  default     = "dev"
 }
 
 variable "project_name" {
   type        = string
   description = "The name of the project"
-  default     = "my_project"
+  default     = "dev-area"
 }
 
 # Virtual Machine
@@ -47,6 +47,13 @@ variable "vm_size" {
   type        = string
   description = "The size of the virtual machine"
   default     = "Standard_B1s"
+}
+
+# Boundary VM
+variable "boundary_vm_size" {
+  type        = string
+  description = "The size of the Boundary virtual machine"
+  default     = "Standard_B2s"
 }
 
 # Networking
@@ -68,6 +75,13 @@ variable "mysql_subnet_cidr" {
   default     = "10.1.2.0/24"
 }
 
+# Boundary subnet
+variable "boundary_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the Boundary subnet"
+  default     = "10.1.3.0/24"
+}
+
 variable "private_endpoint_subnet_id" {
   type        = string
   description = "The ID of the subnet for the private endpoint"
@@ -82,7 +96,7 @@ variable "is_terratest" {
 variable "boundary_cluster_url" {
   type        = string
   description = "Boundary cluster URL"
-  default     = "https://10.3.3.0:9200"
+  default     = "https://10.1.3.0:9200"
 }
 
 variable "boundary_target_id" {

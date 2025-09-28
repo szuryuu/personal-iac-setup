@@ -1,7 +1,7 @@
-# output "vm_public_ip" {
-#   description = "The public IP address of the virtual machine."
-#   value       = module.network.public_ip_address
-# }
+output "vm_public_ip" {
+  description = "The public IP address of the virtual machine."
+  value       = module.network.vm_public_ip
+}
 
 output "vm_private_ip" {
   description = "The private IP address of the virtual machine."
@@ -28,6 +28,27 @@ output "db_fqdn" {
   value       = module.database.mysql_fqdn
 }
 
+# Boundary outputs (ADDED)
+output "boundary_api_url" {
+  description = "Boundary API URL for client connections"
+  value       = module.boundary.boundary_api_url
+}
+
+output "boundary_proxy_url" {
+  description = "Boundary Proxy URL for SSH connections"
+  value       = module.boundary.boundary_proxy_url
+}
+
+output "boundary_private_ip" {
+  description = "Private IP address of Boundary server"
+  value       = module.boundary.boundary_private_ip
+}
+
+output "boundary_public_ip" {
+  description = "Public IP address of Boundary server"
+  value       = module.boundary.boundary_public_ip
+}
+
 output "ansible_inventory" {
   description = "Ansible inventory in JSON format"
   value = jsonencode({
@@ -42,10 +63,18 @@ output "ansible_inventory" {
           project_name                 = var.project_name
           mysql_host                   = module.database.mysql_fqdn
         }
+        "boundary-server" = {
+          ansible_host                 = module.boundary.boundary_private_ip
+          ansible_user                 = "adminuser"
+          ansible_ssh_private_key_file = "~/.ssh/id_rsa"
+          environment                  = var.environment
+          project_name                 = var.project_name
+        }
       }
       vars = {
-        environment  = var.environment
-        project_name = var.project_name
+        environment      = var.environment
+        project_name     = var.project_name
+        boundary_api_url = module.boundary.boundary_api_url
       }
     }
   })
