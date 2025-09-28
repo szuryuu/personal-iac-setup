@@ -64,30 +64,14 @@ resource "azurerm_network_security_group" "vm_nsg" {
   location            = var.location
 
   security_rule {
-    name     = "Boundary-Worker-Access"
-    priority = 90
-  }
-
-  security_rule {
-    name                       = "SSH-Boundary"
-    priority                   = 100
+    name                       = "Allow-SSH-From-Boundary"
+    priority                   = 101
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "SSH-Development"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "Internet"
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = "*"
   }
 
@@ -132,6 +116,7 @@ resource "azurerm_network_security_group" "vm_nsg" {
     environment = var.environment
   }
 }
+
 
 resource "azurerm_network_security_group" "mysql_nsg" {
   name                = "${var.environment}-mysql-nsg"
