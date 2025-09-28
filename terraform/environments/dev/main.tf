@@ -104,40 +104,17 @@ module "network" {
   environment = var.environment
 }
 
-module "boundary-controller" {
-  source              = "../../modules/boundary-controller"
+module "boundary" {
+  source              = "../../modules/boundary"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   vm_size             = var.vm_size
 
-  # Network configuration
   network_interface_ids = module.network.nic_ids
 
   db_connection_string = data.azurerm_key_vault.existing
 
-  # SSH public key
-  ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value
-
-  # Environment variables
-  environment = var.environment
-
-  depends_on = [
-    module.network
-  ]
-}
-
-module "boundary-worker" {
-  source              = "../../modules/boundary-worker"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-  vm_size             = var.vm_size
-
-  # Network configuration
-  network_interface_ids = module.network.nic_ids
-
-  boundary_cluster_url      = "https://${var.boundary_cluster_url}"
-  boundary_worker_subnet_id = module.network.boundary_worker_subnet_id
-  boundary_worker_token     = module.network.boundary_worker_token
+  boundary_subnet_id = var
 
   # SSH public key
   ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value

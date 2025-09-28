@@ -1,17 +1,17 @@
-resource "azurerm_linux_virtual_machine" "boundary" {
-  count               = var.deploy_boundary ? 1 : 0
-  name                = "boundary-${var.environment}"
+resource "azurerm_linux_virtual_machine" "boundary_combined" {
+  name                = "${var.project_name}-${var.environment}-boundary"
   resource_group_name = var.resource_group_name
   location            = var.location
   size                = var.vm_size
+  admin_username      = "adminuser"
 
   disable_password_authentication = true
-  network_interface_ids           = var.network_interface_ids
-
   admin_ssh_key {
     username   = "adminuser"
     public_key = var.ssh_public_key
   }
+
+  network_interface_ids = var.network_interface_ids
 
   os_disk {
     caching              = "ReadWrite"
@@ -29,16 +29,17 @@ resource "azurerm_linux_virtual_machine" "boundary" {
     db_connection_string = var.db_connection_string
     environment          = var.environment
     project_name         = var.project_name
+    worker_auth_key      = var.worker_auth_key
   }))
 
   tags = {
     environment = var.environment
     project     = var.project_name
+    service     = "boundary-combined"
   }
 }
 
 resource "azurerm_network_interface" "boundary_nic" {
-  count               = var.deploy_boundary ? 1 : 0
   name                = "${var.environment}-boundary-nic"
   resource_group_name = var.resource_group_name
   location            = var.location
@@ -47,6 +48,24 @@ resource "azurerm_network_interface" "boundary_nic" {
     name                          = "internal"
     subnet_id                     = var.boundary_subnet_id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.boundary_pip[0].id
+    public_ip_address_id          = azurerm_public_ip.boundary_pip.id
   }
+}
+
+resource "azurerm_public_ip" "boundary_pip" {
+  name                = "${var.environment}-boundary-pip"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+
+  tags = {
+    environment = var.environment
+    project     = var.project_name
+  }
+}
+
+resource "random_password" "worker_auth_key" {
+  length  = 32
+  special = false
 }
