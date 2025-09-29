@@ -30,20 +30,19 @@ disable_mlock = true
 controller {
   name        = "controller-${environment}"
   description = "Controller untuk ${environment} environment"
+
+  database {
+    kind     = "mysql"
+    host     = "${db_host}"
+    port     = 3306
+    database = "boundary"
+    username = "${db_username}"
+    password = "${db_password}"
+
+    max_open_conns = 100
+    ssl_mode       = "required"
+  }
 }
-
-database {
-  kind     = "mysql"
-  host     = "${db_host}"
-  port     = 3306
-  database = "boundary"
-  username = "${db_username}"
-  password = "${db_password}"
-
-  max_open_conns = 100
-  ssl_mode       = "required"
-}
-
 
 listener "tcp" {
   address = "0.0.0.0:9200"
