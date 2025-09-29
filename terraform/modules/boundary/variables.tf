@@ -50,9 +50,21 @@ variable "boundary_subnet_id" {
 }
 
 # Database Configuration
-variable "db_connection_string" {
+variable "db_host" {
   type        = string
-  description = "Database connection string"
+  description = "The hostname of the database"
+}
+
+variable "db_username" {
+  type        = string
+  description = "The username for the database"
+  sensitive   = true
+}
+
+variable "db_password" {
+  type        = string
+  description = "The password for the database"
+  sensitive   = true
 }
 
 variable "network_interface_ids" {

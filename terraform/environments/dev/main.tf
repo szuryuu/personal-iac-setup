@@ -115,8 +115,10 @@ module "boundary" {
   network_interface_ids = [module.boundary.boundary_nic_id]
   boundary_subnet_id    = module.network.boundary_subnet_id
 
-  # Database connection string
-  db_connection_string = "mysql://${data.azurerm_key_vault_secret.db_username.value}:${urlencode(data.azurerm_key_vault_secret.db_password.value)}@${module.database.mysql_fqdn}:3306/boundary"
+  # Database
+  db_host     = module.database.mysql_fqdn
+  db_username = data.azurerm_key_vault_secret.db_username.value
+  db_password = data.azurerm_key_vault_secret.db_password.value
 
   # SSH public key
   ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value

@@ -26,7 +26,10 @@ resource "azurerm_linux_virtual_machine" "boundary_combined" {
   }
 
   custom_data = base64encode(templatefile("${path.module}/init.sh", {
-    db_connection_string = var.db_connection_string
+    db_host     = var.db_host
+    db_username = var.db_username
+    db_password = var.db_password
+
     environment          = var.environment
     project_name         = var.project_name
     worker_auth_key      = random_password.worker_auth_key.result
