@@ -225,6 +225,11 @@ resource "azurerm_subnet_network_security_group_association" "mysql_subnet_nsg" 
   network_security_group_id = azurerm_network_security_group.mysql_nsg.id
 }
 
+resource "azurerm_subnet_network_security_group_association" "boundary_subnet_nsg" {
+  subnet_id                 = azurerm_subnet.boundary_controller_subnet.id
+  network_security_group_id = azurerm_network_security_group.boundary_worker_nsg.id
+}
+
 # Boundary
 # resource "azurerm_subnet" "boundary_worker_subnet" {
 #   name                 = "${var.environment}-boundary-worker-subnet"
