@@ -81,18 +81,18 @@ echo "[8/8] Membuat file konfigurasi..."
 DB_URL="mysql://${db_username}:${db_password}@tcp(${db_host}:3306)/boundary?tls=custom&x-tls-ca=/etc/boundary/DigiCertGlobalRootG2.crt.pem"
 echo "DB URL (masked): mysql://${db_username}:***@tcp(${db_host}:3306)/boundary"
 
-# Escape spesial karakter
-ESCAPED_DB_URL=$(echo "$DB_URL" | sed -e 's/[&/\]/\\&/g')
-ESCAPED_ROOT_KEY=$(echo "$ROOT_KEY" | sed -e 's/[&/\]/\\&/g')
-ESCAPED_WORKER_AUTH_KEY=$(echo "${worker_auth_key}" | sed -e 's/[&/\]/\\&/g')
-ESCAPED_RECOVERY_KEY=$(echo "$RECOVERY_KEY" | sed -e 's/[&/\]/\\&/g')
+# Escape special characters for sed
+ESCAPED_DB_URL=$(echo "$DB_URL" | sed -e 's/[&/\\"]/\\&/g')
+ESCAPED_ROOT_KEY=$(echo "$ROOT_KEY" | sed -e 's/[&/\\"]/\\&/g')
+ESCAPED_WORKER_AUTH_KEY=$(echo "${worker_auth_key}" | sed -e 's/[&/\\"]/\\&/g')
+ESCAPED_RECOVERY_KEY=$(echo "$RECOVERY_KEY" | sed -e 's/[&/\\"]/\\&/g')
 
 # Controller config
 cat << 'CONTROLLER_CONFIG' | sed \
-    -e "s|{{DB_URL}}|'"$ESCAPED_DB_URL"'|g" \
-    -e "s|{{ROOT_KEY}}|'"$ESCAPED_ROOT_KEY"'|g" \
-    -e "s|{{WORKER_AUTH_KEY}}|'"$ESCAPED_WORKER_AUTH_KEY"'|g" \
-    -e "s|{{RECOVERY_KEY}}|'"$ESCAPED_RECOVERY_KEY"'|g" \
+    -e "s|{{DB_URL}}|\"$ESCAPED_DB_URL\"|g" \
+    -e "s|{{ROOT_KEY}}|\"$ESCAPED_ROOT_KEY\"|g" \
+    -e "s|{{WORKER_AUTH_KEY}}|\"$ESCAPED_WORKER_AUTH_KEY\"|g" \
+    -e "s|{{RECOVERY_KEY}}|\"$ESCAPED_RECOVERY_KEY\"|g" \
     > /etc/boundary/controller.hcl
 disable_mlock = true
 
@@ -141,7 +141,7 @@ CONTROLLER_CONFIG
 # Worker config
 cat << 'WORKER_CONFIG' | sed \
     -e "s|{{PUBLIC_IP}}|$PUBLIC_IP|g" \
-    -e "s|{{WORKER_AUTH_KEY}}|$ESCAPED_WORKER_AUTH_KEY|g" \
+    -e "s|{{WORKER_AUTH_KEY}}|\"$ESCAPED_WORKER_AUTH_KEY\"|g" \
     > /etc/boundary/worker.hcl
 disable_mlock = true
 
@@ -161,7 +161,7 @@ listener "tcp" {
 kms "aead" {
   purpose   = "worker-auth"
   aead_type = "aes-gcm"
-  key       = "{{WORKER_AUTH_KEY}}"
+  key       = {{WORKER_AUTH_KEY}}
   key_id    = "global_worker_auth"
 }
 WORKER_CONFIG
