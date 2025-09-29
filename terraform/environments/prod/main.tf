@@ -112,7 +112,6 @@ module "boundary" {
   vm_size             = var.boundary_vm_size
 
   # Network configuration
-  network_interface_ids = [module.boundary.boundary_nic_id]
   boundary_subnet_id    = module.network.boundary_subnet_id
 
   # Database

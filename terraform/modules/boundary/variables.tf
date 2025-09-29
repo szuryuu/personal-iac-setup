@@ -66,8 +66,3 @@ variable "db_password" {
   description = "The password for the database"
   sensitive   = true
 }
-
-variable "network_interface_ids" {
-  type        = list(string)
-  description = "The IDs of the network interfaces"
-}

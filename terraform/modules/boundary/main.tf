@@ -11,7 +11,7 @@ resource "azurerm_linux_virtual_machine" "boundary_combined" {
     public_key = var.ssh_public_key
   }
 
-  network_interface_ids = var.network_interface_ids
+  network_interface_ids = [azurerm_network_interface.boundary_nic.id]
 
   os_disk {
     caching              = "ReadWrite"
