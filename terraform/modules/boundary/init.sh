@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # Log semua output ke file untuk debugging
 exec > >(tee /var/log/boundary-init.log)
@@ -11,7 +11,7 @@ echo "=========================================="
 
 # 1. Update sistem dan install klien MySQL
 echo "[1/8] Memperbarui paket dan menginstal utilitas..."
-apt-get update
+apt-get update -y
 apt-get install -y curl unzip mysql-client jq
 
 # 2. Install Boundary
@@ -78,35 +78,29 @@ echo "Public IP: $PUBLIC_IP"
 # 8. Buat file konfigurasi
 echo "[8/8] Membuat file konfigurasi..."
 
-# IMPORTANT: Build database URL dengan format yang benar
 DB_URL="mysql://${db_username}:${db_password}@tcp(${db_host}:3306)/boundary?tls=custom&x-tls-ca=/etc/boundary/DigiCertGlobalRootG2.crt.pem"
-echo "DB URL (tanpa password): mysql://${db_username}:***@tcp(${db_host}:3306)/boundary"
+echo "DB URL (masked): mysql://${db_username}:***@tcp(${db_host}:3306)/boundary"
 
-# ================= PERUBAHAN DIMULAI DI SINI =================
-# Escape karakter spesial (&, /, \) di dalam variabel untuk `sed`
-# Ini mencegah `&` di dalam URL agar tidak merusak perintah substitusi
+# Escape spesial karakter
 ESCAPED_DB_URL=$(echo "$DB_URL" | sed -e 's/[&/\]/\\&/g')
 ESCAPED_ROOT_KEY=$(echo "$ROOT_KEY" | sed -e 's/[&/\]/\\&/g')
 ESCAPED_WORKER_AUTH_KEY=$(echo "${worker_auth_key}" | sed -e 's/[&/\]/\\&/g')
 ESCAPED_RECOVERY_KEY=$(echo "$RECOVERY_KEY" | sed -e 's/[&/\]/\\&/g')
-# ================= PERUBAHAN SELESAI DI SINI =================
 
-# Buat controller.hcl dengan heredoc yang aman
-# Menggunakan variabel yang sudah di-escape
+# Controller config
 cat << 'CONTROLLER_CONFIG' | sed \
-    -e "s|{{DB_URL}}|$ESCAPED_DB_URL|g" \
-    -e "s|{{ROOT_KEY}}|$ESCAPED_ROOT_KEY|g" \
-    -e "s|{{WORKER_AUTH_KEY}}|$ESCAPED_WORKER_AUTH_KEY|g" \
-    -e "s|{{RECOVERY_KEY}}|$ESCAPED_RECOVERY_KEY|g" \
+    -e "s|{{DB_URL}}|'"$ESCAPED_DB_URL"'|g" \
+    -e "s|{{ROOT_KEY}}|'"$ESCAPED_ROOT_KEY"'|g" \
+    -e "s|{{WORKER_AUTH_KEY}}|'"$ESCAPED_WORKER_AUTH_KEY"'|g" \
+    -e "s|{{RECOVERY_KEY}}|'"$ESCAPED_RECOVERY_KEY"'|g" \
     > /etc/boundary/controller.hcl
 disable_mlock = true
 
 controller {
   name        = "boundary-controller"
   description = "Boundary controller"
-
   database {
-    url = "{{DB_URL}}"
+    url = {{DB_URL}}
   }
 }
 
@@ -125,38 +119,36 @@ listener "tcp" {
 kms "aead" {
   purpose   = "root"
   aead_type = "aes-gcm"
-  key       = "{{ROOT_KEY}}"
+  key       = {{ROOT_KEY}}
   key_id    = "global_root"
 }
 
 kms "aead" {
   purpose   = "worker-auth"
   aead_type = "aes-gcm"
-  key       = "{{WORKER_AUTH_KEY}}"
+  key       = {{WORKER_AUTH_KEY}}
   key_id    = "global_worker_auth"
 }
 
 kms "aead" {
   purpose   = "recovery"
   aead_type = "aes-gcm"
-  key       = "{{RECOVERY_KEY}}"
+  key       = {{RECOVERY_KEY}}
   key_id    = "global_recovery"
 }
 CONTROLLER_CONFIG
 
-# Buat worker.hcl
+# Worker config
 cat << 'WORKER_CONFIG' | sed \
     -e "s|{{PUBLIC_IP}}|$PUBLIC_IP|g" \
-    -e "s|{{WORKER_AUTH_KEY}}|${worker_auth_key}|g" \
+    -e "s|{{WORKER_AUTH_KEY}}|$ESCAPED_WORKER_AUTH_KEY|g" \
     > /etc/boundary/worker.hcl
 disable_mlock = true
 
 worker {
   name        = "boundary-worker"
   description = "Boundary worker"
-
   public_addr = "{{PUBLIC_IP}}"
-
   initial_upstreams = ["127.0.0.1:9201"]
 }
 
@@ -178,11 +170,12 @@ WORKER_CONFIG
 sudo chown boundary:boundary /etc/boundary/*.hcl
 sudo chmod 640 /etc/boundary/*.hcl
 
-# Debug: Print config (without sensitive data)
 echo "=== Controller Config Check ==="
 grep -v "key.*=" /etc/boundary/controller.hcl | head -20
 
-# Buat systemd service untuk controller
+# ================== SYSTEMD SERVICES ==================
+
+# Controller service
 cat > /etc/systemd/system/boundary-controller.service << 'CONTROLLER_SERVICE'
 [Unit]
 Description=HashiCorp Boundary Controller
@@ -206,7 +199,7 @@ LimitNOFILE=65536
 WantedBy=multi-user.target
 CONTROLLER_SERVICE
 
-# Buat systemd service untuk worker
+# Worker service
 cat > /etc/systemd/system/boundary-worker.service << 'WORKER_SERVICE'
 [Unit]
 Description=HashiCorp Boundary Worker
@@ -230,15 +223,20 @@ LimitNOFILE=65536
 WantedBy=multi-user.target
 WORKER_SERVICE
 
+# Debug ensure files exist
+echo "=== Service Files Created ==="
+ls -l /etc/systemd/system/boundary-*.service
+
 # Reload systemd
+sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 
 # Initialize database
 echo "=========================================="
 echo "Initializing Boundary database..."
-sudo -u boundary /usr/local/bin/boundary database init -config /etc/boundary/controller.hcl || {
+if ! sudo -u boundary /usr/local/bin/boundary database init -config /etc/boundary/controller.hcl; then
     echo "Database init warning (might already be initialized)"
-}
+fi
 
 # Start services
 echo "Starting Boundary services..."
@@ -249,14 +247,11 @@ sudo systemctl start boundary-controller
 echo "Waiting for controller to start..."
 sleep 15
 
-# Check controller status
 if systemctl is-active --quiet boundary-controller; then
     echo "✓ Controller is running"
 
-    # Start worker
     sudo systemctl enable boundary-worker
     sudo systemctl start boundary-worker
-
     sleep 10
 
     if systemctl is-active --quiet boundary-worker; then
