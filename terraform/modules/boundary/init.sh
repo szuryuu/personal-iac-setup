@@ -79,18 +79,25 @@ echo "Public IP: $PUBLIC_IP"
 echo "[8/8] Membuat file konfigurasi..."
 
 # IMPORTANT: Build database URL dengan format yang benar
-# Format: postgres://username:password@host:port/database?sslmode=require
-# Untuk MySQL dengan Boundary, gunakan format standard connection string
 DB_URL="mysql://${db_username}:${db_password}@tcp(${db_host}:3306)/boundary?tls=custom&x-tls-ca=/etc/boundary/DigiCertGlobalRootG2.crt.pem"
-
 echo "DB URL (tanpa password): mysql://${db_username}:***@tcp(${db_host}:3306)/boundary"
 
+# ================= PERUBAHAN DIMULAI DI SINI =================
+# Escape karakter spesial (&, /, \) di dalam variabel untuk `sed`
+# Ini mencegah `&` di dalam URL agar tidak merusak perintah substitusi
+ESCAPED_DB_URL=$(echo "$DB_URL" | sed -e 's/[&/\]/\\&/g')
+ESCAPED_ROOT_KEY=$(echo "$ROOT_KEY" | sed -e 's/[&/\]/\\&/g')
+ESCAPED_WORKER_AUTH_KEY=$(echo "${worker_auth_key}" | sed -e 's/[&/\]/\\&/g')
+ESCAPED_RECOVERY_KEY=$(echo "$RECOVERY_KEY" | sed -e 's/[&/\]/\\&/g')
+# ================= PERUBAHAN SELESAI DI SINI =================
+
 # Buat controller.hcl dengan heredoc yang aman
+# Menggunakan variabel yang sudah di-escape
 cat << 'CONTROLLER_CONFIG' | sed \
-    -e "s|{{DB_URL}}|$DB_URL|g" \
-    -e "s|{{ROOT_KEY}}|$ROOT_KEY|g" \
-    -e "s|{{WORKER_AUTH_KEY}}|${worker_auth_key}|g" \
-    -e "s|{{RECOVERY_KEY}}|$RECOVERY_KEY|g" \
+    -e "s|{{DB_URL}}|$ESCAPED_DB_URL|g" \
+    -e "s|{{ROOT_KEY}}|$ESCAPED_ROOT_KEY|g" \
+    -e "s|{{WORKER_AUTH_KEY}}|$ESCAPED_WORKER_AUTH_KEY|g" \
+    -e "s|{{RECOVERY_KEY}}|$ESCAPED_RECOVERY_KEY|g" \
     > /etc/boundary/controller.hcl
 disable_mlock = true
 
