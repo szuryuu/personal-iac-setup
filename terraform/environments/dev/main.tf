@@ -8,9 +8,7 @@ terraform {
 }
 
 provider "azurerm" {
-  features {
-  }
-
+  features {}
   subscription_id = var.subscription_id
 }
 
@@ -38,27 +36,41 @@ data "azurerm_key_vault_secret" "db_username" {
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
+# ==================== NETWORK MODULE ====================
+module "network" {
+  source              = "../../modules/network"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+
+  # Network Configuration
+  vnet_cidr               = var.vnet_cidr
+  vm_subnet_cidr          = var.vm_subnet_cidr
+  mysql_subnet_cidr       = var.mysql_subnet_cidr
+  postgresql_subnet_cidr  = var.postgresql_subnet_cidr
+  boundary_subnet_cidr    = var.boundary_subnet_cidr
+  create_private_dns_zone = true
+
+  is_terratest = var.is_terratest
+  environment  = var.environment
+}
+
+# ==================== COMPUTE MODULE ====================
 module "compute" {
   source              = "../../modules/compute"
   resource_group_name = data.azurerm_resource_group.main.name
   location            = data.azurerm_resource_group.main.location
   vm_size             = var.vm_size
 
-  # Network configuration
   network_interface_ids = module.network.nic_ids
+  ssh_public_key        = data.azurerm_key_vault_secret.ssh_public_key.value
 
-  # SSH public key
-  ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value
-
-  # Environment variables
   environment  = var.environment
   project_name = var.project_name
 
-  depends_on = [
-    module.network
-  ]
+  depends_on = [module.network]
 }
 
+# ==================== DATABASE MODULE (MySQL + PostgreSQL) ====================
 module "database" {
   source              = "../../modules/database"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -70,41 +82,31 @@ module "database" {
   db_sku_name             = var.db_sku_name
   backup_retention_days   = var.backup_retention_days
 
-  # Network configuration
-  delegated_subnet_id   = module.network.mysql_subnet_id
-  private_dns_zone_id   = module.network.private_dns_zone_id
-  private_dns_zone_link = module.network.private_dns_zone_link
+  # MySQL Network configuration
+  mysql_delegated_subnet_id     = module.network.mysql_subnet_id
+  mysql_private_dns_zone_id     = module.network.mysql_private_dns_zone_id
+  mysql_private_dns_zone_link   = module.network.mysql_private_dns_zone_link
 
-  # Environment variables
+  # PostgreSQL Network configuration
+  postgresql_delegated_subnet_id    = module.network.postgresql_subnet_id
+  postgresql_private_dns_zone_id    = module.network.postgresql_private_dns_zone_id
+  postgresql_private_dns_zone_link  = module.network.postgresql_private_dns_zone_link
+
   environment  = var.environment
   project_name = var.project_name
 
   depends_on = [
     module.network,
     module.network.mysql_subnet_id,
-    module.network.private_dns_zone_id,
-    module.network.private_dns_zone_link
+    module.network.mysql_private_dns_zone_id,
+    module.network.mysql_private_dns_zone_link,
+    module.network.postgresql_subnet_id,
+    module.network.postgresql_private_dns_zone_id,
+    module.network.postgresql_private_dns_zone_link
   ]
 }
 
-module "network" {
-  source              = "../../modules/network"
-  resource_group_name = data.azurerm_resource_group.main.name
-  location            = data.azurerm_resource_group.main.location
-
-  # Network Configuration
-  vnet_cidr               = var.vnet_cidr
-  vm_subnet_cidr          = var.vm_subnet_cidr
-  mysql_subnet_cidr       = var.mysql_subnet_cidr
-  boundary_subnet_cidr    = var.boundary_subnet_cidr
-  create_private_dns_zone = true
-
-  is_terratest = var.is_terratest
-
-  # Environment variables
-  environment = var.environment
-}
-
+# ==================== BOUNDARY MODULE ====================
 module "boundary" {
   source              = "../../modules/boundary"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -112,18 +114,16 @@ module "boundary" {
   vm_size             = var.boundary_vm_size
 
   # Network configuration
-  # network_interface_ids = [module.boundary.boundary_nic_id]
-  boundary_subnet_id    = module.network.boundary_subnet_id
+  boundary_subnet_id = module.network.boundary_subnet_id
 
-  # Database
-  db_host     = module.database.mysql_fqdn
+  # PostgreSQL Database (untuk Boundary)
+  db_host     = module.database.postgresql_fqdn
   db_username = data.azurerm_key_vault_secret.db_username.value
   db_password = data.azurerm_key_vault_secret.db_password.value
 
   # SSH public key
   ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value
 
-  # Environment variables
   environment  = var.environment
   project_name = var.project_name
 

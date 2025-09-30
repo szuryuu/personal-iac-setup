@@ -1,14 +1,24 @@
-resource "null_resource" "wait_for_subnet" {
+resource "null_resource" "wait_for_mysql_subnet" {
   provisioner "local-exec" {
     command = "sleep 30"
   }
 
   triggers = {
-    subnet_id = var.delegated_subnet_id
+    mysql_subnet_id = var.mysql_delegated_subnet_id
   }
 }
 
+resource "null_resource" "wait_for_postgresql_subnet" {
+  provisioner "local-exec" {
+    command = "sleep 30"
+  }
 
+  triggers = {
+    postgresql_subnet_id = var.postgresql_delegated_subnet_id
+  }
+}
+
+# ==================== MYSQL (untuk aplikasi) ====================
 resource "azurerm_mysql_flexible_database" "mysql" {
   name                = "${var.environment}-mysql-db"
   resource_group_name = var.resource_group_name
@@ -24,60 +34,22 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
   administrator_login    = var.db_admin_login
   administrator_password = var.db_admin_login_password
   backup_retention_days  = var.backup_retention_days
-  delegated_subnet_id    = var.delegated_subnet_id
-  private_dns_zone_id    = var.private_dns_zone_id
+  delegated_subnet_id    = var.mysql_delegated_subnet_id
+  private_dns_zone_id    = var.mysql_private_dns_zone_id
   sku_name               = var.db_sku_name
-  # zone                   = "1"
 
-  # false for cost-saving
   geo_redundant_backup_enabled = var.environment == "prod" ? true : false
-  # geo_redundant_backup_enabled = true
-
-  # public_network_access_enabled = false
 
   tags = {
     environment = var.environment
     project     = var.project_name
+    purpose     = "application"
   }
 
-  depends_on = [var.private_dns_zone_link]
+  depends_on = [var.mysql_private_dns_zone_link]
 }
 
-# resource "azurerm_private_endpoint" "mysql_private_endpoint" {
-#   name                = "${var.project_name}-${var.environment}-mysql-pe"
-#   location            = var.location
-#   resource_group_name = var.resource_group_name
-#   subnet_id           = var.private_endpoint_subnet_id
-
-#   private_service_connection {
-#     name                           = "${var.project_name}-${var.environment}-mysql-psc"
-#     private_connection_resource_id = azurerm_mysql_flexible_server.mysql_server.id
-#     subresource_names              = ["mysqlServer"]
-#     is_manual_connection           = false
-#   }
-# }
-
-#   private_dns_zone_group {
-#     name                 = "mysql-dns-zone-group"
-#     private_dns_zone_ids = [var.private_dns_zone_id]
-#   }
-
-#   tags = {
-#     environment = var.environment
-#     project     = var.project_name
-#   }
-# }
-
-# Commenting because db firewall rule is not required and db is not exposed to public network
-# resource "azurerm_mysql_flexible_server_firewall_rule" "sql_firewall_rule" {
-#   name                = "${var.environment}-sql-firewall-rule"
-#   resource_group_name = var.resource_group_name
-#   server_name         = azurerm_mysql_flexible_server.mysql_server.name
-#   start_ip_address    = var.start_ip_address
-#   end_ip_address      = var.end_ip_address
-# }
-
-# SQL Configuration
+# MySQL Configuration
 resource "azurerm_mysql_flexible_server_configuration" "sql_mode" {
   name                = "sql_mode"
   resource_group_name = var.resource_group_name
@@ -92,10 +64,57 @@ resource "azurerm_mysql_flexible_server_configuration" "time_zone" {
   value               = "+07:00"
 }
 
-# Enable SSL enforcement
 resource "azurerm_mysql_flexible_server_configuration" "require_secure_transport" {
   name                = "require_secure_transport"
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.mysql_server.name
   value               = "ON"
+}
+
+# ==================== POSTGRESQL (untuk Boundary) ====================
+resource "azurerm_postgresql_flexible_server" "postgresql_server" {
+  name                   = "${var.project_name}-${var.environment}-postgresql-server"
+  resource_group_name    = var.resource_group_name
+  location               = var.location
+  administrator_login    = var.db_admin_login
+  administrator_password = var.db_admin_login_password
+  backup_retention_days  = var.backup_retention_days
+  delegated_subnet_id    = var.postgresql_delegated_subnet_id
+  private_dns_zone_id    = var.postgresql_private_dns_zone_id
+  sku_name               = var.db_sku_name
+  storage_mb             = 32768
+  version                = "16"
+
+  # IMPORTANT: Disable public network access when using VNet integration
+  public_network_access_enabled = false
+
+  geo_redundant_backup_enabled = var.environment == "prod" ? true : false
+
+  tags = {
+    environment = var.environment
+    project     = var.project_name
+    purpose     = "boundary"
+  }
+
+  depends_on = [var.postgresql_private_dns_zone_link]
+}
+
+resource "azurerm_postgresql_flexible_server_database" "boundary_db" {
+  name      = "boundary"
+  server_id = azurerm_postgresql_flexible_server.postgresql_server.id
+  charset   = "UTF8"
+  collation = "en_US.utf8"
+}
+
+# PostgreSQL Configuration
+resource "azurerm_postgresql_flexible_server_configuration" "timezone" {
+  name      = "timezone"
+  server_id = azurerm_postgresql_flexible_server.postgresql_server.id
+  value     = "Asia/Jakarta"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "ssl_mode" {
+  name      = "require_secure_transport"
+  server_id = azurerm_postgresql_flexible_server.postgresql_server.id
+  value     = "on"
 }

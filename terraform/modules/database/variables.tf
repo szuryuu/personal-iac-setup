@@ -9,21 +9,21 @@ variable "location" {
   description = "The location of the resource group"
 }
 
-# Database
+# Database Credentials (shared)
 variable "db_admin_login" {
   type        = string
-  description = "The administrator login for the Azure SQL Server"
+  description = "The administrator login for the database servers"
 }
 
 variable "db_admin_login_password" {
   type        = string
-  description = "The administrator login password for the Azure SQL Server"
+  description = "The administrator login password for the database servers"
 }
 
 variable "db_sku_name" {
   type        = string
-  description = "The SKU name for the Azure SQL Server"
-  default     = "Standard_B1ms"
+  description = "The SKU name for the database servers"
+  default     = "B_Standard_B1ms"
 }
 
 variable "backup_retention_days" {
@@ -32,20 +32,36 @@ variable "backup_retention_days" {
   default     = 7
 }
 
-# Network
-variable "delegated_subnet_id" {
+# MySQL Network Configuration
+variable "mysql_delegated_subnet_id" {
   type        = string
-  description = "The ID of the delegated subnet"
+  description = "The ID of the delegated subnet for MySQL"
 }
 
-variable "private_dns_zone_id" {
+variable "mysql_private_dns_zone_id" {
   type        = string
-  description = "The ID of the private DNS zone"
+  description = "The ID of the private DNS zone for MySQL"
 }
 
-variable "private_dns_zone_link" {
+variable "mysql_private_dns_zone_link" {
   type        = string
-  description = "The private DNS zone link"
+  description = "The private DNS zone link for MySQL"
+}
+
+# PostgreSQL Network Configuration
+variable "postgresql_delegated_subnet_id" {
+  type        = string
+  description = "The ID of the delegated subnet for PostgreSQL"
+}
+
+variable "postgresql_private_dns_zone_id" {
+  type        = string
+  description = "The ID of the private DNS zone for PostgreSQL"
+}
+
+variable "postgresql_private_dns_zone_link" {
+  type        = string
+  description = "The private DNS zone link for PostgreSQL"
 }
 
 # Environment

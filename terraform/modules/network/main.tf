@@ -12,6 +12,7 @@ resource "azurerm_subnet" "vm_subnet" {
   address_prefixes     = [var.vm_subnet_cidr]
 }
 
+# ==================== MYSQL SUBNET ====================
 resource "azurerm_subnet" "mysql_subnet" {
   name                 = "${var.environment}-mysql-subnet"
   resource_group_name  = var.resource_group_name
@@ -20,9 +21,28 @@ resource "azurerm_subnet" "mysql_subnet" {
   service_endpoints    = ["Microsoft.Storage"]
 
   delegation {
-    name = "fs"
+    name = "mysql-delegation"
     service_delegation {
       name = "Microsoft.DBforMySQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+
+# ==================== POSTGRESQL SUBNET ====================
+resource "azurerm_subnet" "postgresql_subnet" {
+  name                 = "${var.environment}-postgresql-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.network.name
+  address_prefixes     = [var.postgresql_subnet_cidr]
+  service_endpoints    = ["Microsoft.Storage"]
+
+  delegation {
+    name = "postgresql-delegation"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
@@ -37,27 +57,49 @@ resource "azurerm_subnet" "boundary_controller_subnet" {
   address_prefixes     = [var.boundary_subnet_cidr]
 }
 
-resource "azurerm_private_dns_zone" "dns_zone" {
+# ==================== MYSQL DNS ZONE ====================
+resource "azurerm_private_dns_zone" "mysql_dns_zone" {
   count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"
   resource_group_name = var.resource_group_name
 }
 
-data "azurerm_private_dns_zone" "existing_dns_zone" {
+data "azurerm_private_dns_zone" "existing_mysql_dns_zone" {
   count               = !var.create_private_dns_zone && !var.is_terratest ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"
   resource_group_name = var.resource_group_name
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
-  name                  = "${var.environment}-dns-vnet-link"
+resource "azurerm_private_dns_zone_virtual_network_link" "mysql_dns_zone_link" {
+  name                  = "${var.environment}-mysql-dns-vnet-link"
   resource_group_name   = var.resource_group_name
-  private_dns_zone_name = (var.create_private_dns_zone || var.is_terratest) ? azurerm_private_dns_zone.dns_zone[0].name : data.azurerm_private_dns_zone.existing_dns_zone[0].name
+  private_dns_zone_name = (var.create_private_dns_zone || var.is_terratest) ? azurerm_private_dns_zone.mysql_dns_zone[0].name : data.azurerm_private_dns_zone.existing_mysql_dns_zone[0].name
   virtual_network_id    = azurerm_virtual_network.network.id
   registration_enabled  = false
 }
 
-# Network Security Group
+# ==================== POSTGRESQL DNS ZONE ====================
+resource "azurerm_private_dns_zone" "postgresql_dns_zone" {
+  count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
+  name                = "privatelink.postgres.database.azure.com"
+  resource_group_name = var.resource_group_name
+}
+
+data "azurerm_private_dns_zone" "existing_postgresql_dns_zone" {
+  count               = !var.create_private_dns_zone && !var.is_terratest ? 1 : 0
+  name                = "privatelink.postgres.database.azure.com"
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "postgresql_dns_zone_link" {
+  name                  = "${var.environment}-postgresql-dns-vnet-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = (var.create_private_dns_zone || var.is_terratest) ? azurerm_private_dns_zone.postgresql_dns_zone[0].name : data.azurerm_private_dns_zone.existing_postgresql_dns_zone[0].name
+  virtual_network_id    = azurerm_virtual_network.network.id
+  registration_enabled  = false
+}
+
+# ==================== NETWORK SECURITY GROUPS ====================
 resource "azurerm_network_security_group" "vm_nsg" {
   name                = "${var.environment}-vm-nsg"
   resource_group_name = var.resource_group_name
@@ -99,7 +141,6 @@ resource "azurerm_network_security_group" "vm_nsg" {
     destination_address_prefix = "*"
   }
 
-  # Block all other inbound traffic
   security_rule {
     name                       = "DenyAllInbound"
     priority                   = 4000
@@ -117,9 +158,8 @@ resource "azurerm_network_security_group" "vm_nsg" {
   }
 }
 
-
-resource "azurerm_network_security_group" "mysql_nsg" {
-  name                = "${var.environment}-mysql-nsg"
+resource "azurerm_network_security_group" "database_nsg" {
+  name                = "${var.environment}-database-nsg"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -131,6 +171,18 @@ resource "azurerm_network_security_group" "mysql_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "3306"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "PostgreSQL"
+    priority                   = 101
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5432"
     source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = "*"
   }
@@ -194,6 +246,7 @@ resource "azurerm_network_security_group" "boundary_worker_nsg" {
   }
 }
 
+# ==================== PUBLIC IP & NIC ====================
 resource "azurerm_public_ip" "vm_public_ip" {
   name                = "${var.environment}-vm-pip"
   resource_group_name = var.resource_group_name
@@ -215,6 +268,7 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
+# ==================== NSG ASSOCIATIONS ====================
 resource "azurerm_subnet_network_security_group_association" "vm_subnet_nsg" {
   subnet_id                 = azurerm_subnet.vm_subnet.id
   network_security_group_id = azurerm_network_security_group.vm_nsg.id
@@ -222,18 +276,15 @@ resource "azurerm_subnet_network_security_group_association" "vm_subnet_nsg" {
 
 resource "azurerm_subnet_network_security_group_association" "mysql_subnet_nsg" {
   subnet_id                 = azurerm_subnet.mysql_subnet.id
-  network_security_group_id = azurerm_network_security_group.mysql_nsg.id
+  network_security_group_id = azurerm_network_security_group.database_nsg.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "postgresql_subnet_nsg" {
+  subnet_id                 = azurerm_subnet.postgresql_subnet.id
+  network_security_group_id = azurerm_network_security_group.database_nsg.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "boundary_subnet_nsg" {
   subnet_id                 = azurerm_subnet.boundary_controller_subnet.id
   network_security_group_id = azurerm_network_security_group.boundary_worker_nsg.id
 }
-
-# Boundary
-# resource "azurerm_subnet" "boundary_worker_subnet" {
-#   name                 = "${var.environment}-boundary-worker-subnet"
-#   resource_group_name  = var.resource_group_name
-#   virtual_network_name = azurerm_virtual_network.network.name
-#   address_prefixes     = [var.boundary_worker_subnet_cidr]
-# }

@@ -28,6 +28,18 @@ variable "mysql_subnet_cidr" {
   default     = "10.0.2.0/24"
 }
 
+variable "postgresql_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the PostgreSQL subnet"
+  default     = "10.0.3.0/24"
+}
+
+variable "boundary_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the Boundary subnet"
+  default     = "10.0.4.0/24"
+}
+
 # Environment
 variable "environment" {
   type        = string
@@ -50,15 +62,3 @@ variable "is_terratest" {
   description = "A flag to indicate if the environment is being deployed for a Terratest run."
   default     = false
 }
-
-variable "boundary_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the Boundary subnet"
-  default     = "10.0.3.0/24"
-}
-
-# variable "boundary_worker_subnet_cidr" {
-#   type        = string
-#   description = "The CIDR block for the Boundary worker subnet"
-#   default     = "10.0.4.0/24"
-# }

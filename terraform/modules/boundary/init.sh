@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Log semua output ke file untuk debugging
 exec > >(tee /var/log/boundary-init.log)
 exec 2>&1
 
@@ -9,10 +8,10 @@ echo "=========================================="
 echo "Memulai instalasi Boundary pada $(date)"
 echo "=========================================="
 
-# 1. Update sistem dan install klien MySQL
+# 1. Update sistem dan install PostgreSQL client
 echo "[1/8] Memperbarui paket dan menginstal utilitas..."
 apt-get update -y
-apt-get install -y curl unzip mysql-client jq
+apt-get install -y curl unzip postgresql-client jq
 
 # 2. Install Boundary
 echo "[2/8] Menginstal Boundary versi ${BOUNDARY_VERSION}..."
@@ -21,7 +20,6 @@ unzip -o boundary.zip
 sudo mv boundary /usr/local/bin/
 rm boundary.zip
 
-# Verify installation
 boundary version
 
 # 3. Buat user dan direktori Boundary
@@ -30,21 +28,24 @@ sudo useradd --system --home /etc/boundary --shell /bin/false boundary || true
 sudo mkdir -p /etc/boundary /opt/boundary/data
 sudo chown -R boundary:boundary /etc/boundary /opt/boundary
 
-# 4. Unduh Sertifikat SSL Azure
+# 4. Unduh Sertifikat SSL Azure untuk PostgreSQL
+echo "[4/8] Mengunduh sertifikat SSL Azure..."
 sudo curl -fsSL --create-dirs \
   -o /etc/boundary/DigiCertGlobalRootG2.crt.pem \
   https://cacerts.digicert.com/DigiCertGlobalRootG2.crt.pem
 
 sudo chown boundary:boundary /etc/boundary/DigiCertGlobalRootG2.crt.pem
 
-
-# 5. Tunggu Database Siap
-echo "[5/8] Menunggu database di host ${db_host} siap..."
+# 5. Tunggu Database PostgreSQL Siap
+echo "[5/8] Menunggu database PostgreSQL di host ${db_host} siap..."
 MAX_RETRIES=30
 RETRY_COUNT=0
+
+export PGPASSWORD="${db_password}"
+
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if mysql --ssl-ca=/etc/boundary/DigiCertGlobalRootG2.crt.pem -h "${db_host}" -u "${db_username}" -p"${db_password}" -e "SELECT 1" &>/dev/null; then
-        echo "✓ Database berhasil dihubungi!"
+    if psql "host=${db_host} port=5432 user=${db_username} dbname=postgres sslmode=require" -c "SELECT 1" &>/dev/null; then
+        echo "✓ Database PostgreSQL berhasil dihubungi!"
         break
     fi
     echo "  Menunggu database... percobaan $((RETRY_COUNT + 1))/$MAX_RETRIES"
@@ -57,16 +58,15 @@ if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
     exit 1
 fi
 
-# 6. Buat database Boundary
-echo "[6/8] Membuat database 'boundary' jika belum ada..."
-mysql --ssl-ca=/etc/boundary/DigiCertGlobalRootG2.crt.pem \
-    -h "${db_host}" \
-    -u "${db_username}" \
-    -p"${db_password}" \
-    -e "CREATE DATABASE IF NOT EXISTS boundary CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-echo "✓ Database 'boundary' telah dibuat/diverifikasi."
+# 6. Verifikasi database 'boundary' (sudah dibuat oleh Terraform)
+echo "[6/8] Memverifikasi database 'boundary'..."
+if psql "host=${db_host} port=5432 user=${db_username} dbname=boundary sslmode=require" -c "SELECT version();" &>/dev/null; then
+    echo "✓ Database 'boundary' verified."
+else
+    echo "✗ WARNING: Database 'boundary' not found. Terraform should have created it."
+fi
 
-# 7. Generate keys
+# 7. Generate encryption keys
 echo "[7/8] Generate encryption keys..."
 ROOT_KEY=$(openssl rand -base64 32)
 RECOVERY_KEY=$(openssl rand -base64 32)
@@ -81,8 +81,9 @@ echo "Public IP: $PUBLIC_IP"
 # 8. Buat file konfigurasi
 echo "[8/8] Membuat file konfigurasi..."
 
-DB_URL="mysql://${db_username}:${encoded_db_password}@tcp(${db_host}:3306)/boundary?tls=custom&x-tls-ca=/etc/boundary/DigiCertGlobalRootG2.crt.pem"
-echo "DB URL (masked): mysql://${db_username}:***@tcp(${db_host}:3306)/boundary"
+# PostgreSQL connection string
+DB_URL="postgresql://${db_username}:${encoded_db_password}@${db_host}:5432/boundary?sslmode=require"
+echo "DB URL (masked): postgresql://${db_username}:***@${db_host}:5432/boundary"
 
 # Escape special characters for sed
 ESCAPED_DB_URL=$(echo "$DB_URL" | sed -e 's/[&/\\"]/\\&/g')
@@ -169,7 +170,6 @@ kms "aead" {
 }
 WORKER_CONFIG
 
-# Set permissions
 sudo chown boundary:boundary /etc/boundary/*.hcl
 sudo chmod 640 /etc/boundary/*.hcl
 
@@ -178,7 +178,6 @@ grep -v "key.*=" /etc/boundary/controller.hcl | head -20
 
 # ================== SYSTEMD SERVICES ==================
 
-# Controller service
 cat > /etc/systemd/system/boundary-controller.service << 'CONTROLLER_SERVICE'
 [Unit]
 Description=HashiCorp Boundary Controller
@@ -202,7 +201,6 @@ LimitNOFILE=65536
 WantedBy=multi-user.target
 CONTROLLER_SERVICE
 
-# Worker service
 cat > /etc/systemd/system/boundary-worker.service << 'WORKER_SERVICE'
 [Unit]
 Description=HashiCorp Boundary Worker
@@ -226,11 +224,12 @@ LimitNOFILE=65536
 WantedBy=multi-user.target
 WORKER_SERVICE
 
-# Debug ensure files exist
 echo "=== Service Files Created ==="
 ls -l /etc/systemd/system/boundary-*.service
 
-# Reload systemd
+sudo chown root:root /etc/systemd/system/boundary-*.service
+sudo chmod 644 /etc/systemd/system/boundary-*.service
+
 sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 
@@ -241,16 +240,11 @@ if ! sudo -u boundary /usr/local/bin/boundary database init -config /etc/boundar
     echo "Database init warning (might already be initialized)"
 fi
 
-sudo chown root:root /etc/systemd/system/boundary-*.service
-sudo chmod 644 /etc/systemd/system/boundary-*.service
-
 # Start services
 echo "Starting Boundary services..."
 sudo systemctl enable boundary-controller
 sudo systemctl start boundary-controller
 
-# Wait for controller
-echo "Waiting for controller to start..."
 sleep 15
 
 if systemctl is-active --quiet boundary-controller; then
@@ -278,7 +272,11 @@ echo "=========================================="
 echo "Controller API: http://$PUBLIC_IP:9200"
 echo "Worker Proxy: $PUBLIC_IP:9202"
 echo ""
-echo "Service Status:"
+echo "Database Info:"
+echo "  Type: PostgreSQL"
+echo "  Host: ${db_host}"
+echo "  Database: boundary"
+echo ""
 systemctl status boundary-controller --no-pager -l | head -10
 systemctl status boundary-worker --no-pager -l | head -10
 echo "=========================================="
