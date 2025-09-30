@@ -31,9 +31,12 @@ sudo mkdir -p /etc/boundary /opt/boundary/data
 sudo chown -R boundary:boundary /etc/boundary /opt/boundary
 
 # 4. Unduh Sertifikat SSL Azure
-echo "[4/8] Mengunduh sertifikat SSL database Azure..."
-curl -sS --create-dirs -o /etc/boundary/DigiCertGlobalRootG2.crt.pem https://dl.cacerts.digicert.com/DigiCertGlobalRootG2.crt.pem
-chown boundary:boundary /etc/boundary/DigiCertGlobalRootG2.crt.pem
+sudo curl -fsSL --create-dirs \
+  -o /etc/boundary/DigiCertGlobalRootG2.crt.pem \
+  https://cacerts.digicert.com/DigiCertGlobalRootG2.crt.pem
+
+sudo chown boundary:boundary /etc/boundary/DigiCertGlobalRootG2.crt.pem
+
 
 # 5. Tunggu Database Siap
 echo "[5/8] Menunggu database di host ${db_host} siap..."
@@ -78,7 +81,7 @@ echo "Public IP: $PUBLIC_IP"
 # 8. Buat file konfigurasi
 echo "[8/8] Membuat file konfigurasi..."
 
-DB_URL="mysql://${db_username}:${db_password}@tcp(${db_host}:3306)/boundary?tls=custom&x-tls-ca=/etc/boundary/DigiCertGlobalRootG2.crt.pem"
+DB_URL="mysql://${db_username}:${encoded_db_password}@tcp(${db_host}:3306)/boundary?tls=custom&x-tls-ca=/etc/boundary/DigiCertGlobalRootG2.crt.pem"
 echo "DB URL (masked): mysql://${db_username}:***@tcp(${db_host}:3306)/boundary"
 
 # Escape special characters for sed
@@ -237,6 +240,9 @@ echo "Initializing Boundary database..."
 if ! sudo -u boundary /usr/local/bin/boundary database init -config /etc/boundary/controller.hcl; then
     echo "Database init warning (might already be initialized)"
 fi
+
+sudo chown root:root /etc/systemd/system/boundary-*.service
+sudo chmod 644 /etc/systemd/system/boundary-*.service
 
 # Start services
 echo "Starting Boundary services..."

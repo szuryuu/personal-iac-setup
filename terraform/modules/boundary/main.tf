@@ -30,6 +30,7 @@ resource "azurerm_linux_virtual_machine" "boundary_combined" {
     db_username = var.db_username
     db_password = var.db_password
 
+    encoded_db_password = urlencode(var.db_password)
     environment          = var.environment
     project_name         = var.project_name
     worker_auth_key      = random_password.worker_auth_key.result
