@@ -83,14 +83,14 @@ module "database" {
   backup_retention_days   = var.backup_retention_days
 
   # MySQL Network configuration
-  mysql_delegated_subnet_id     = module.network.mysql_subnet_id
-  mysql_private_dns_zone_id     = module.network.mysql_private_dns_zone_id
-  mysql_private_dns_zone_link   = module.network.mysql_private_dns_zone_link
+  mysql_delegated_subnet_id   = module.network.mysql_subnet_id
+  mysql_private_dns_zone_id   = module.network.mysql_private_dns_zone_id
+  mysql_private_dns_zone_link = module.network.mysql_private_dns_zone_link
 
   # PostgreSQL Network configuration
-  postgresql_delegated_subnet_id    = module.network.postgresql_subnet_id
-  postgresql_private_dns_zone_id    = module.network.postgresql_private_dns_zone_id
-  postgresql_private_dns_zone_link  = module.network.postgresql_private_dns_zone_link
+  postgresql_delegated_subnet_id   = module.network.postgresql_subnet_id
+  postgresql_private_dns_zone_id   = module.network.postgresql_private_dns_zone_id
+  postgresql_private_dns_zone_link = module.network.postgresql_private_dns_zone_link
 
   environment  = var.environment
   project_name = var.project_name

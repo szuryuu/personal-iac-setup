@@ -153,7 +153,7 @@ worker {
   name        = "boundary-worker"
   description = "Boundary worker"
   public_addr = "{{PUBLIC_IP}}"
-  initial_upstreams = ["127.0.0.1:9201"]
+  initial_upstreams = ["localhost:9201"]
 }
 
 listener "tcp" {

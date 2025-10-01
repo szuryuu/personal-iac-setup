@@ -63,5 +63,5 @@ output "private_dns_zone_id" {
 
 output "private_dns_zone_link" {
   description = "MySQL DNS zone link (legacy)"
-  value = azurerm_private_dns_zone_virtual_network_link.mysql_dns_zone_link.id
+  value       = azurerm_private_dns_zone_virtual_network_link.mysql_dns_zone_link.id
 }

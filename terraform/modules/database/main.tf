@@ -118,3 +118,10 @@ resource "azurerm_postgresql_flexible_server_configuration" "ssl_mode" {
   server_id = azurerm_postgresql_flexible_server.postgresql_server.id
   value     = "on"
 }
+
+# CRITICAL: Enable btree_gist extension for Boundary
+resource "azurerm_postgresql_flexible_server_configuration" "azure_extensions" {
+  name      = "azure.extensions"
+  server_id = azurerm_postgresql_flexible_server.postgresql_server.id
+  value     = "BTREE_GIST,CITEXT,HSTORE,PG_TRGM,PGCRYPTO,UUID-OSSP"
+}
