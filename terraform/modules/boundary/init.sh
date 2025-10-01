@@ -72,9 +72,12 @@ ROOT_KEY=$(openssl rand -base64 32)
 RECOVERY_KEY=$(openssl rand -base64 32)
 
 # Get public IP
-PUBLIC_IP=$(curl -s -H Metadata:true --noproxy "*" --max-time 10 \
-    "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/publicIpAddress?api-version=2021-02-01&format=text" \
-    || ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -1)
+PUBLIC_IP=$(curl -s -H "Metadata:true" \
+  "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/publicIpAddress?api-version=2021-02-01&format=text")
+
+if [ -z "$PUBLIC_IP" ]; then
+  PUBLIC_IP=$(curl -s ifconfig.me)
+fi
 
 echo "Public IP: $PUBLIC_IP"
 
