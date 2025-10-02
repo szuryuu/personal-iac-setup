@@ -12,7 +12,7 @@ resource "azurerm_subnet" "vm_subnet" {
   address_prefixes     = [var.vm_subnet_cidr]
 }
 
-# ==================== MYSQL SUBNET ====================
+# MYSQL SUBNET
 resource "azurerm_subnet" "mysql_subnet" {
   name                 = "${var.environment}-mysql-subnet"
   resource_group_name  = var.resource_group_name
@@ -31,7 +31,7 @@ resource "azurerm_subnet" "mysql_subnet" {
   }
 }
 
-# ==================== POSTGRESQL SUBNET ====================
+# POSTGRESQL SUBNET
 resource "azurerm_subnet" "postgresql_subnet" {
   name                 = "${var.environment}-postgresql-subnet"
   resource_group_name  = var.resource_group_name
@@ -57,7 +57,7 @@ resource "azurerm_subnet" "boundary_controller_subnet" {
   address_prefixes     = [var.boundary_subnet_cidr]
 }
 
-# ==================== MYSQL DNS ZONE ====================
+# MYSQL DNS ZONE
 resource "azurerm_private_dns_zone" "mysql_dns_zone" {
   count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
   name                = "privatelink.mysql.database.azure.com"
@@ -78,7 +78,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "mysql_dns_zone_link" {
   registration_enabled  = false
 }
 
-# ==================== POSTGRESQL DNS ZONE ====================
+# POSTGRESQL DNS ZONE
 resource "azurerm_private_dns_zone" "postgresql_dns_zone" {
   count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
   name                = "privatelink.postgres.database.azure.com"
@@ -99,7 +99,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "postgresql_dns_zone_li
   registration_enabled  = false
 }
 
-# ==================== NETWORK SECURITY GROUPS ====================
+# NETWORK SECURITY GROUPS
 resource "azurerm_network_security_group" "vm_nsg" {
   name                = "${var.environment}-vm-nsg"
   resource_group_name = var.resource_group_name
@@ -246,7 +246,7 @@ resource "azurerm_network_security_group" "boundary_worker_nsg" {
   }
 }
 
-# ==================== PUBLIC IP & NIC ====================
+# PUBLIC IP & NIC
 resource "azurerm_public_ip" "vm_public_ip" {
   name                = "${var.environment}-vm-pip"
   resource_group_name = var.resource_group_name
@@ -268,7 +268,7 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-# ==================== NSG ASSOCIATIONS ====================
+# NSG ASSOCIATIONS
 resource "azurerm_subnet_network_security_group_association" "vm_subnet_nsg" {
   subnet_id                 = azurerm_subnet.vm_subnet.id
   network_security_group_id = azurerm_network_security_group.vm_nsg.id
