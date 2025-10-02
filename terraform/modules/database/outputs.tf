@@ -1,4 +1,4 @@
-# MySQL Outputs (untuk aplikasi)
+# MySQL Outputs (for application)
 output "mysql_fqdn" {
   description = "The fully qualified domain name of the MySQL server."
   value       = azurerm_mysql_flexible_server.mysql_server.fqdn
@@ -14,7 +14,7 @@ output "mysql_database_name" {
   value       = azurerm_mysql_flexible_database.mysql.name
 }
 
-# PostgreSQL Outputs (untuk Boundary)
+# PostgreSQL Outputs (for Boundary)
 output "postgresql_fqdn" {
   description = "The fully qualified domain name of the PostgreSQL server."
   value       = azurerm_postgresql_flexible_server.postgresql_server.fqdn

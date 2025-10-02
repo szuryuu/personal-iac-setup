@@ -18,7 +18,7 @@ resource "null_resource" "wait_for_postgresql_subnet" {
   }
 }
 
-# ==================== MYSQL (untuk aplikasi) ====================
+# MYSQL (for application)
 resource "azurerm_mysql_flexible_database" "mysql" {
   name                = "${var.environment}-mysql-db"
   resource_group_name = var.resource_group_name
@@ -71,7 +71,7 @@ resource "azurerm_mysql_flexible_server_configuration" "require_secure_transport
   value               = "ON"
 }
 
-# ==================== POSTGRESQL (untuk Boundary) ====================
+# POSTGRESQL (for Boundary)
 resource "azurerm_postgresql_flexible_server" "postgresql_server" {
   name                   = "${var.project_name}-${var.environment}-postgresql-server"
   resource_group_name    = var.resource_group_name
@@ -85,7 +85,7 @@ resource "azurerm_postgresql_flexible_server" "postgresql_server" {
   storage_mb             = 32768
   version                = "16"
 
-  # IMPORTANT: Disable public network access when using VNet integration
+  # Disable public network access when using VNet integration
   public_network_access_enabled = false
 
   geo_redundant_backup_enabled = var.environment == "prod" ? true : false
@@ -119,7 +119,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "ssl_mode" {
   value     = "on"
 }
 
-# CRITICAL: Enable btree_gist extension for Boundary
+# Enable some extensions for Boundary
 resource "azurerm_postgresql_flexible_server_configuration" "azure_extensions" {
   name      = "azure.extensions"
   server_id = azurerm_postgresql_flexible_server.postgresql_server.id
