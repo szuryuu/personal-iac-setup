@@ -188,7 +188,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=notify
+Type=exec
 User=boundary
 Group=boundary
 ExecStart=/usr/local/bin/boundary server -config=/etc/boundary/controller.hcl
@@ -196,7 +196,7 @@ KillMode=process
 KillSignal=SIGINT
 Restart=on-failure
 RestartSec=5
-TimeoutStartSec=300
+TimeoutStartSec=900
 TimeoutStopSec=30
 LimitNOFILE=65536
 
@@ -207,11 +207,11 @@ CONTROLLER_SERVICE
 cat > /etc/systemd/system/boundary-worker.service << 'WORKER_SERVICE'
 [Unit]
 Description=HashiCorp Boundary Worker
-After=boundary-controller.service
-Wants=boundary-controller.service
+After=network-online.target
+Wants=network-online.target
 
 [Service]
-Type=notify
+Type=exec
 User=boundary
 Group=boundary
 ExecStart=/usr/local/bin/boundary server -config=/etc/boundary/worker.hcl
