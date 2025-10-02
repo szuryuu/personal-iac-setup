@@ -36,7 +36,7 @@ data "azurerm_key_vault_secret" "db_username" {
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
-# ==================== NETWORK MODULE ====================
+# NETWORK MODULE
 module "network" {
   source              = "../../modules/network"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -54,7 +54,7 @@ module "network" {
   environment  = var.environment
 }
 
-# ==================== COMPUTE MODULE ====================
+# COMPUTE MODULE
 module "compute" {
   source              = "../../modules/compute"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -70,7 +70,7 @@ module "compute" {
   depends_on = [module.network]
 }
 
-# ==================== DATABASE MODULE (MySQL + PostgreSQL) ====================
+# DATABASE MODULE (MySQL + PostgreSQL)
 module "database" {
   source              = "../../modules/database"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -106,7 +106,7 @@ module "database" {
   ]
 }
 
-# ==================== BOUNDARY MODULE ====================
+# BOUNDARY MODULE
 module "boundary" {
   source              = "../../modules/boundary"
   resource_group_name = data.azurerm_resource_group.main.name
@@ -116,7 +116,7 @@ module "boundary" {
   # Network configuration
   boundary_subnet_id = module.network.boundary_subnet_id
 
-  # PostgreSQL Database (untuk Boundary)
+  # PostgreSQL Database (for Boundary)
   db_host     = module.database.postgresql_fqdn
   db_username = data.azurerm_key_vault_secret.db_username.value
   db_password = data.azurerm_key_vault_secret.db_password.value
