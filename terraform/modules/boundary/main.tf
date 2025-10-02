@@ -6,6 +6,7 @@ resource "azurerm_linux_virtual_machine" "boundary_combined" {
   admin_username      = "adminuser"
 
   disable_password_authentication = true
+
   admin_ssh_key {
     username   = "adminuser"
     public_key = var.ssh_public_key
@@ -31,10 +32,10 @@ resource "azurerm_linux_virtual_machine" "boundary_combined" {
     db_password = var.db_password
 
     encoded_db_password = urlencode(var.db_password)
-    environment          = var.environment
-    project_name         = var.project_name
-    worker_auth_key      = random_password.worker_auth_key.result
-    BOUNDARY_VERSION     = "0.19.3"
+    environment         = var.environment
+    project_name        = var.project_name
+    worker_auth_key     = random_password.worker_auth_key.result
+    BOUNDARY_VERSION    = "0.19.3"
   }))
 
   tags = {

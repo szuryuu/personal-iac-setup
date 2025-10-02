@@ -5,16 +5,16 @@ exec > >(tee /var/log/boundary-init.log)
 exec 2>&1
 
 echo "=========================================="
-echo "Memulai instalasi Boundary pada $(date)"
+echo "Boundary Installation - $(date)"
 echo "=========================================="
 
-# 1. Update sistem dan install PostgreSQL client
-echo "[1/8] Memperbarui paket dan menginstal utilitas..."
+# Update System and install PostgreSQL client
+echo "[1/8] Updating packages and installing utilities..."
 apt-get update -y
 apt-get install -y curl unzip postgresql-client jq
 
 # 2. Install Boundary
-echo "[2/8] Menginstal Boundary versi ${BOUNDARY_VERSION}..."
+echo "[2/8] Installing Boundary version ${BOUNDARY_VERSION}..."
 curl -fsSL https://releases.hashicorp.com/boundary/${BOUNDARY_VERSION}/boundary_${BOUNDARY_VERSION}_linux_amd64.zip -o boundary.zip
 unzip -o boundary.zip
 sudo mv boundary /usr/local/bin/
@@ -22,22 +22,22 @@ rm boundary.zip
 
 boundary version
 
-# 3. Buat user dan direktori Boundary
-echo "[3/8] Membuat user dan direktori untuk Boundary..."
+# 3. Make user and directory for Boundary
+echo "[3/8] Creating user and directory for Boundary..."
 sudo useradd --system --home /etc/boundary --shell /bin/false boundary || true
 sudo mkdir -p /etc/boundary /opt/boundary/data
 sudo chown -R boundary:boundary /etc/boundary /opt/boundary
 
-# 4. Unduh Sertifikat SSL Azure untuk PostgreSQL
-echo "[4/8] Mengunduh sertifikat SSL Azure..."
+# 4. Download SSL certificate for PostgreSQL
+echo "[4/8] Downloading SSL certificate for PostgreSQL..."
 sudo curl -fsSL --create-dirs \
   -o /etc/boundary/DigiCertGlobalRootG2.crt.pem \
   https://cacerts.digicert.com/DigiCertGlobalRootG2.crt.pem
 
 sudo chown boundary:boundary /etc/boundary/DigiCertGlobalRootG2.crt.pem
 
-# 5. Tunggu Database PostgreSQL Siap
-echo "[5/8] Menunggu database PostgreSQL di host ${db_host} siap..."
+# 5. Wait for PostgreSQL Database Ready
+echo "[5/8] Waiting for PostgreSQL database at host ${db_host} to be ready..."
 MAX_RETRIES=30
 RETRY_COUNT=0
 
@@ -45,21 +45,21 @@ export PGPASSWORD="${db_password}"
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     if psql "host=${db_host} port=5432 user=${db_username} dbname=postgres sslmode=require" -c "SELECT 1" &>/dev/null; then
-        echo "✓ Database PostgreSQL berhasil dihubungi!"
+        echo "✓ PostgreSQL database at host ${db_host} is ready."
         break
     fi
-    echo "  Menunggu database... percobaan $((RETRY_COUNT + 1))/$MAX_RETRIES"
+    echo "  Waiting for database... attempt $((RETRY_COUNT + 1))/$MAX_RETRIES"
     sleep 10
     RETRY_COUNT=$((RETRY_COUNT + 1))
 done
 
 if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-    echo "✗ ERROR: Waktu tunggu koneksi database habis."
+    echo "✗ ERROR: Timeout waiting for PostgreSQL database."
     exit 1
 fi
 
-# 6. Verifikasi database 'boundary' (sudah dibuat oleh Terraform)
-echo "[6/8] Memverifikasi database 'boundary'..."
+# 6. Verify database 'boundary' (already created by Terraform)
+echo "[6/8] Verifying database 'boundary'..."
 if psql "host=${db_host} port=5432 user=${db_username} dbname=boundary sslmode=require" -c "SELECT version();" &>/dev/null; then
     echo "✓ Database 'boundary' verified."
 else
@@ -67,7 +67,7 @@ else
 fi
 
 # 7. Generate encryption keys
-echo "[7/8] Generate encryption keys..."
+echo "[7/8] Generating encryption keys..."
 ROOT_KEY=$(openssl rand -base64 32)
 RECOVERY_KEY=$(openssl rand -base64 32)
 
@@ -81,8 +81,8 @@ fi
 
 echo "Public IP: $PUBLIC_IP"
 
-# 8. Buat file konfigurasi
-echo "[8/8] Membuat file konfigurasi..."
+# 8. Create configuration file
+echo "[8/8] Creating configuration file..."
 
 # PostgreSQL connection string
 DB_URL="postgresql://${db_username}:${encoded_db_password}@${db_host}:5432/boundary?sslmode=require"
@@ -248,26 +248,12 @@ echo "Starting Boundary services..."
 sudo systemctl enable boundary-controller
 sudo systemctl start boundary-controller
 
+sleep 20
+
+sudo systemctl enable boundary-worker
+sudo systemctl start boundary-worker
+
 sleep 15
-
-if systemctl is-active --quiet boundary-controller; then
-    echo "✓ Controller is running"
-
-    sudo systemctl enable boundary-worker
-    sudo systemctl start boundary-worker
-    sleep 10
-
-    if systemctl is-active --quiet boundary-worker; then
-        echo "✓ Worker is running"
-    else
-        echo "✗ Worker failed to start"
-        journalctl -u boundary-worker -n 20 --no-pager
-    fi
-else
-    echo "✗ Controller failed to start"
-    journalctl -u boundary-controller -n 20 --no-pager
-    exit 1
-fi
 
 echo "=========================================="
 echo "Installation Complete!"
