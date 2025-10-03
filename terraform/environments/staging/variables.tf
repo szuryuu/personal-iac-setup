@@ -19,7 +19,7 @@ variable "key_vault_name" {
 # Database
 variable "db_sku_name" {
   type        = string
-  description = "The SKU name for the Azure SQL Server"
+  description = "The SKU name for the database servers"
   default     = "B_Standard_B1ms"
 }
 
@@ -75,17 +75,16 @@ variable "mysql_subnet_cidr" {
   default     = "10.1.2.0/24"
 }
 
-# Boundary subnet
-variable "boundary_subnet_cidr" {
+variable "postgresql_subnet_cidr" {
   type        = string
-  description = "The CIDR block for the Boundary subnet"
+  description = "The CIDR block for the PostgreSQL subnet"
   default     = "10.1.3.0/24"
 }
 
-variable "private_endpoint_subnet_id" {
+variable "boundary_subnet_cidr" {
   type        = string
-  description = "The ID of the subnet for the private endpoint"
-  default     = null
+  description = "The CIDR block for the Boundary subnet"
+  default     = "10.1.4.0/24"
 }
 
 variable "is_terratest" {
@@ -96,7 +95,7 @@ variable "is_terratest" {
 variable "boundary_cluster_url" {
   type        = string
   description = "Boundary cluster URL"
-  default     = "https://10.1.3.0:9200"
+  default     = "https://10.1.4.0:9200"
 }
 
 variable "boundary_target_id" {

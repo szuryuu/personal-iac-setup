@@ -23,12 +23,29 @@ output "project_name" {
   value       = var.project_name
 }
 
-output "db_fqdn" {
-  description = "The fully qualified domain name of the database."
+# MySQL Outputs (untuk aplikasi)
+output "mysql_fqdn" {
+  description = "The fully qualified domain name of the MySQL database (for application)."
   value       = module.database.mysql_fqdn
 }
 
-# Boundary outputs (ADDED)
+output "mysql_database_name" {
+  description = "The name of the MySQL database."
+  value       = module.database.mysql_database_name
+}
+
+# PostgreSQL Outputs (untuk Boundary)
+output "postgresql_fqdn" {
+  description = "The fully qualified domain name of the PostgreSQL database (for Boundary)."
+  value       = module.database.postgresql_fqdn
+}
+
+output "boundary_database_name" {
+  description = "The name of the Boundary database."
+  value       = module.database.boundary_database_name
+}
+
+# Boundary outputs
 output "boundary_api_url" {
   description = "Boundary API URL for client connections"
   value       = module.boundary.boundary_api_url
@@ -69,13 +86,22 @@ output "ansible_inventory" {
           ansible_ssh_private_key_file = "~/.ssh/id_rsa"
           environment                  = var.environment
           project_name                 = var.project_name
+          postgresql_host              = module.database.postgresql_fqdn
         }
       }
       vars = {
         environment      = var.environment
         project_name     = var.project_name
         boundary_api_url = module.boundary.boundary_api_url
+        mysql_host       = module.database.mysql_fqdn
+        postgresql_host  = module.database.postgresql_fqdn
       }
     }
   })
+}
+
+# Legacy output untuk backward compatibility
+output "db_fqdn" {
+  description = "The fully qualified domain name of the MySQL database (legacy)."
+  value       = module.database.mysql_fqdn
 }
