@@ -4,11 +4,6 @@
     state: present
     update_cache: yes
 
-- name: Add user to group root
-  user:
-    name: "{{ user }}"
-    state: present
-
 - name: Remove default nginx configuration
   file:
     path: /etc/nginx/sites-enabled/default

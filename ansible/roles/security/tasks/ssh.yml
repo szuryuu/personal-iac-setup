@@ -1,8 +1,9 @@
 ---
 - name: SSH Setup
-  community.general.ssh_keypair:
+  ansible.builtin.openssh_keypair:
     path: /etc/ssh/ssh_host_ecdsa_key
     type: ecdsa
+    state: present
 
 - name: Set permit root login to no
   ansible.builtin.lineinfile:

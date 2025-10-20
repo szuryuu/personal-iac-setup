@@ -2,4 +2,4 @@
 - name: Timezone setup
   community.general.timezone:
     name: "Asia/Jakarta"
-    hwclock: true
+    hwclock: UTC

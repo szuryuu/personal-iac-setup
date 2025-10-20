@@ -19,7 +19,7 @@
       - net-tools
       - dnsutils
       - telnet
-      - nc
+      - netcat-openbsd
       - nmap
 
       # Development tools
