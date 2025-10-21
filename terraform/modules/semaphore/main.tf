@@ -29,11 +29,13 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
     version   = "latest"
   }
 
-  custom_data = base64encode(templatefile("${path.module}/scripts/install-semaphore.sh", {
+  custom_data = base64encode(templatefile("${path.module}/scripts/semaphore-init.sh", {
     admin_password   = var.semaphore_admin_password
     db_dialect       = var.db_dialect
     ansible_repo_url = var.ansible_repo_url
     ssh_private_key  = var.ssh_private_key
+    boundary_ip      = var.boundary_ip
+    vm_ip            = var.vm_ip
   }))
 
   tags = {

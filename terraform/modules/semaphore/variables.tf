@@ -63,7 +63,7 @@ variable "boundary_ip" {
   description = "Boundary server IP"
 }
 
-variable "vm_dev_ip" {
+variable "vm_ip" {
   type        = string
   description = "Dev VM private IP"
 }

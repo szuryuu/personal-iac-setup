@@ -160,7 +160,7 @@ module "semaphore" {
   project_name = var.project_name
 
   boundary_ip = module.boundary.boundary_public_ip
-  vm_dev_ip   = module.compute.private_ip_address
+  vm_ip   = module.compute.private_ip_address
 
   depends_on = [
     module.network,

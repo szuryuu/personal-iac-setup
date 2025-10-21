@@ -60,8 +60,8 @@ Host boundary
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
 
-Host vm-dev
-  HostName ${vm_dev_ip}
+Host vm
+  HostName ${vm_ip}
   User adminuser
   IdentityFile /etc/semaphore/id_rsa
   ProxyJump boundary
