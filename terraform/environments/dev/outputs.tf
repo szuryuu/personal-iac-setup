@@ -113,5 +113,5 @@ output "semaphore_public_ip" {
 
 output "semaphore_private_ip" {
   description = "The private IP address of the Semaphore server."
-  value = module.semaphore.semaphore_private_ip
+  value       = module.semaphore.semaphore_private_ip
 }

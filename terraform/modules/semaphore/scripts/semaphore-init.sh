@@ -30,17 +30,9 @@ chmod +x /usr/local/bin/docker-compose
 
 # Setup data disk
 echo "[4/8] Setting up data disk..."
-DATA_DISK="/dev/sdc"
-if [ -b "$DATA_DISK" ]; then
-    mkfs.ext4 $DATA_DISK
-    mkdir -p /mnt/semaphore-data
-    mount $DATA_DISK /mnt/semaphore-data
-    echo "$DATA_DISK /mnt/semaphore-data ext4 defaults,nofail 0 2" >> /etc/fstab
-
-    # Create directories
-    mkdir -p /mnt/semaphore-data/{db,ssh,ansible}
-    chown -R 1001:1001 /mnt/semaphore-data
-fi
+mkdir -p /mnt/semaphore-data
+mkdir -p /mnt/semaphore-data/{db,ssh,ansible}
+chown -R 1001:1001 /mnt/semaphore-data
 
 # Setup SSH key
 echo "[5/8] Setting up SSH keys..."
@@ -102,7 +94,7 @@ services:
       ANSIBLE_GALAXY_SERVER_CACHE_PATH: /tmp
     volumes:
       - /mnt/semaphore-data/db:/tmp/semaphore
-      - /mnt/semaphore-data/ansible:/ansible
+      - /mnt/semaphore-data/piac/ansible:/ansible
       - /mnt/semaphore-data/ssh/id_rsa:/etc/semaphore/id_rsa:ro
       - /mnt/semaphore-data/ssh/config:/etc/semaphore/ssh_config:ro
     networks:

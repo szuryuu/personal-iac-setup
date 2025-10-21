@@ -150,17 +150,17 @@ module "semaphore" {
   semaphore_subnet_id = module.network.semaphore_subnet_id
 
   # SSH key
-  ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value
+  ssh_public_key  = data.azurerm_key_vault_secret.ssh_public_key.value
   ssh_private_key = data.azurerm_key_vault_secret.ssh_private_key.value
 
   semaphore_admin_password = var.semaphore_admin_password
-  ansible_repo_url = "https://github.com/szuryuu/personal-iac-setup"
+  ansible_repo_url         = "https://github.com/szuryuu/personal-iac-setup"
 
   environment  = var.environment
   project_name = var.project_name
 
   boundary_ip = module.boundary.boundary_public_ip
-  vm_ip   = module.compute.private_ip_address
+  vm_ip       = module.compute.private_ip_address
 
   depends_on = [
     module.network,
