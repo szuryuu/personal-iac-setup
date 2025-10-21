@@ -30,6 +30,11 @@ variable "ssh_public_key" {
   description = "The public SSH key to use for the Semaphore VM"
 }
 
+variable "ssh_private_key" {
+  type        = string
+  description = "The private SSH key to use for the Semaphore VM"
+}
+
 variable "vm_size" {
   type        = string
   description = "The size of the virtual machine"
@@ -39,4 +44,33 @@ variable "vm_size" {
 variable "semaphore_subnet_id" {
   type        = string
   description = "Subnet ID for Semaphore"
+}
+
+variable "db_dialect" {
+  type        = string
+  description = "Database dialect"
+  default     = "bolt"
+}
+
+variable "ansible_repo_url" {
+  type        = string
+  description = "Ansible repository URL (optional)"
+  default     = ""
+}
+
+variable "boundary_ip" {
+  type        = string
+  description = "Boundary server IP"
+}
+
+variable "vm_dev_ip" {
+  type        = string
+  description = "Dev VM private IP"
+}
+
+variable "semaphore_admin_password" {
+  type        = string
+  description = "Semaphore admin password"
+  sensitive   = true
+  default     = "changeme"
 }

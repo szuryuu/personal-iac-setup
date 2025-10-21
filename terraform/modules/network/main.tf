@@ -253,6 +253,10 @@ resource "azurerm_network_security_group" "boundary_worker_nsg" {
     source_address_prefix      = "Internet"
     destination_address_prefix = "*"
   }
+
+  lifecycle {
+    ignore_changes = [security_rule]
+  }
 }
 
 # PUBLIC IP & NIC

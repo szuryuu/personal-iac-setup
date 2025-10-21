@@ -26,6 +26,11 @@ data "azurerm_key_vault_secret" "ssh_public_key" {
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
+data "azurerm_key_vault_secret" "ssh_private_key" {
+  name         = "${var.environment}-vm-ssh-private-keys-nopass"
+  key_vault_id = data.azurerm_key_vault.existing.id
+}
+
 data "azurerm_key_vault_secret" "db_password" {
   name         = "${var.environment}-db-password-login-creds"
   key_vault_id = data.azurerm_key_vault.existing.id
@@ -144,14 +149,23 @@ module "semaphore" {
   # Network configuration
   semaphore_subnet_id = module.network.semaphore_subnet_id
 
-  # SSH public key
+  # SSH key
   ssh_public_key = data.azurerm_key_vault_secret.ssh_public_key.value
+  ssh_private_key = data.azurerm_key_vault_secret.ssh_private_key.value
+
+  semaphore_admin_password = var.semaphore_admin_password
+  ansible_repo_url = "https://github.com/szuryuu/personal-iac-setup"
 
   environment  = var.environment
   project_name = var.project_name
 
+  boundary_ip = module.boundary.boundary_public_ip
+  vm_dev_ip   = module.compute.private_ip_address
+
   depends_on = [
     module.network,
-    module.database
+    module.database,
+    module.compute,
+    module.boundary
   ]
 }

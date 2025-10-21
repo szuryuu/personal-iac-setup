@@ -19,6 +19,7 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
+    disk_size_gb         = 64
   }
 
   source_image_reference {
@@ -27,6 +28,13 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  custom_data = base64encode(templatefile("${path.module}/scripts/install-semaphore.sh", {
+    admin_password   = var.semaphore_admin_password
+    db_dialect       = var.db_dialect
+    ansible_repo_url = var.ansible_repo_url
+    ssh_private_key  = var.ssh_private_key
+  }))
 
   tags = {
     environment = var.environment

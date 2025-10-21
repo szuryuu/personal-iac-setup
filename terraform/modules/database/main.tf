@@ -46,6 +46,10 @@ resource "azurerm_mysql_flexible_server" "mysql_server" {
     purpose     = "application"
   }
 
+  lifecycle {
+    ignore_changes = [zone]
+  }
+
   depends_on = [var.mysql_private_dns_zone_link]
 }
 
@@ -94,6 +98,10 @@ resource "azurerm_postgresql_flexible_server" "postgresql_server" {
     environment = var.environment
     project     = var.project_name
     purpose     = "boundary"
+  }
+
+  lifecycle {
+    ignore_changes = [zone]
   }
 
   depends_on = [var.postgresql_private_dns_zone_link]

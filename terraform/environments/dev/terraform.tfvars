@@ -18,3 +18,5 @@ postgresql_subnet_cidr = "10.1.3.0/24"
 boundary_subnet_cidr   = "10.1.4.0/24"
 semaphore_subnet_cidr  = "10.1.5.0/24"
 boundary_cluster_url   = "10.1.4.0:9200"
+
+semaphore_admin_password = "changeme"

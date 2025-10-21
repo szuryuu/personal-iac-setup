@@ -62,6 +62,13 @@ variable "semaphore_vm_size" {
   default     = "Standard_B2s"
 }
 
+variable "semaphore_admin_password" {
+  type        = string
+  description = "Semaphore admin password"
+  sensitive   = true
+  default     = "changeme"
+}
+
 # Networking
 variable "vnet_cidr" {
   type        = string

@@ -74,8 +74,8 @@ chmod 644 /mnt/semaphore-data/ssh/config
 # Clone Ansible repo (if Git URL provided)
 echo "[7/8] Cloning Ansible repository..."
 if [ ! -z "${ansible_repo_url}" ]; then
-    git clone ${ansible_repo_url} /mnt/semaphore-data/ansible
-    chown -R 1001:1001 /mnt/semaphore-data/ansible
+    git clone ${ansible_repo_url} /mnt/semaphore-data/piac
+    chown -R 1001:1001 /mnt/semaphore-data/piac/ansible
 fi
 
 # Setup Docker Compose
