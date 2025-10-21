@@ -6,9 +6,8 @@ resource "azurerm_linux_virtual_machine" "main" {
   size                = var.vm_size
 
   disable_password_authentication = true
-
-  provision_vm_agent         = true
-  allow_extension_operations = false
+  provision_vm_agent              = true
+  allow_extension_operations      = false
 
   network_interface_ids = var.network_interface_ids
 

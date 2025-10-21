@@ -50,11 +50,20 @@ resource "azurerm_subnet" "postgresql_subnet" {
   }
 }
 
+# BOUNDARY CONTROLLER SUBNET
 resource "azurerm_subnet" "boundary_controller_subnet" {
   name                 = "${var.environment}-boundary-controller-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.network.name
   address_prefixes     = [var.boundary_subnet_cidr]
+}
+
+# SEMAPHORE SUBNET
+resource "azurerm_subnet" "semaphore_subnet" {
+  name                 = "${var.environment}-semaphore-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.network.name
+  address_prefixes     = [var.semaphore_subnet_cidr]
 }
 
 # MYSQL DNS ZONE

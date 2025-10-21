@@ -3,7 +3,7 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
   admin_username      = "adminuser"
   resource_group_name = var.resource_group_name
   location            = var.location
-  size                = "Standard_B2s"
+  size                = var.vm_size
 
   disable_password_authentication = true
   provision_vm_agent              = true
@@ -13,7 +13,7 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
 
   admin_ssh_key {
     username   = "adminuser"
-    public_key = file("~/.ssh/azure_vm_key_dev_test1.pub")
+    public_key = var.ssh_public_key
   }
 
   os_disk {
@@ -33,4 +33,25 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
     project     = var.project_name
     role        = "semaphore"
   }
+}
+
+resource "azurerm_network_interface" "semaphore_nic" {
+  name                = "${var.environment}-semaphore-nic"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = var.semaphore_subnet_id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.semaphore_pip.id
+  }
+}
+
+resource "azurerm_public_ip" "semaphore_pip" {
+  name                = "${var.environment}-semaphore-pip"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }

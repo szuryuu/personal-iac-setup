@@ -24,3 +24,19 @@ variable "project_name" {
   description = "The name of the project"
   default     = "my_project"
 }
+
+variable "ssh_public_key" {
+  type        = string
+  description = "The public SSH key to use for the Semaphore VM"
+}
+
+variable "vm_size" {
+  type        = string
+  description = "The size of the virtual machine"
+  default     = "Standard_B2s"
+}
+
+variable "semaphore_subnet_id" {
+  type        = string
+  description = "Subnet ID for Semaphore"
+}

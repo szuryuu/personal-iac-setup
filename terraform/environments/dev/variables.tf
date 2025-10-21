@@ -56,6 +56,12 @@ variable "boundary_vm_size" {
   default     = "Standard_B2s"
 }
 
+variable "semaphore_vm_size" {
+  type        = string
+  description = "The size of the Semaphore virtual machine"
+  default     = "Standard_B2s"
+}
+
 # Networking
 variable "vnet_cidr" {
   type        = string
@@ -85,6 +91,12 @@ variable "boundary_subnet_cidr" {
   type        = string
   description = "The CIDR block for the Boundary subnet"
   default     = "10.1.4.0/24"
+}
+
+variable "semaphore_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the Semaphore subnet"
+  default     = "10.1.5.0/24"
 }
 
 variable "is_terratest" {
