@@ -129,13 +129,6 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
   }
 }
 
-resource "azurerm_subnet" "semaphore_subnet" {
-  name                 = "semaphore-subnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.network.name
-  address_prefixes     = [var.semaphore_subnet_cidr]
-}
-
 resource "azurerm_network_interface" "semaphore_nic" {
   name                = "semaphore-nic"
   resource_group_name = var.resource_group_name
@@ -143,7 +136,7 @@ resource "azurerm_network_interface" "semaphore_nic" {
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.semaphore_subnet.id
+    subnet_id                     = azurerm_subnet.semaphore.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.semaphore_pip.id
   }
@@ -228,6 +221,6 @@ resource "azurerm_network_security_group" "semaphore_nsg" {
 }
 
 resource "azurerm_subnet_network_security_group_association" "semaphore_nsg" {
-  subnet_id                 = azurerm_subnet.semaphore_subnet.id
+  subnet_id                 = azurerm_subnet.semaphore.id
   network_security_group_id = azurerm_network_security_group.semaphore_nsg.id
 }

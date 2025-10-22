@@ -19,8 +19,6 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 systemctl enable docker
 systemctl start docker
-
-# Add adminuser to docker group
 usermod -aG docker adminuser
 
 # Install Docker Compose
@@ -30,7 +28,6 @@ chmod +x /usr/local/bin/docker-compose
 
 # Setup data disk
 echo "[4/8] Setting up data disk..."
-mkdir -p /mnt/semaphore-data
 mkdir -p /mnt/semaphore-data/{db,ssh,ansible}
 chown -R 1001:1001 /mnt/semaphore-data
 
@@ -45,18 +42,51 @@ chmod 600 /mnt/semaphore-data/ssh/id_rsa
 # Setup SSH config
 echo "[6/8] Setting up SSH config..."
 cat > /mnt/semaphore-data/ssh/config << 'EOF'
-Host boundary
-  HostName ${boundary_ip}
+# DEV ENVIRONMENT
+Host dev-boundary
+  HostName ${dev_boundary_ip}
   User adminuser
   IdentityFile /etc/semaphore/id_rsa
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
 
-Host vm
-  HostName ${vm_ip}
+Host dev-vm
+  HostName ${dev_vm_ip}
   User adminuser
   IdentityFile /etc/semaphore/id_rsa
-  ProxyJump boundary
+  ProxyJump dev-boundary
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+# STAGING ENVIRONMENT
+Host staging-boundary
+  HostName ${staging_boundary_ip}
+  User adminuser
+  IdentityFile /etc/semaphore/id_rsa
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+Host staging-vm
+  HostName ${staging_vm_ip}
+  User adminuser
+  IdentityFile /etc/semaphore/id_rsa
+  ProxyJump staging-boundary
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+# PRODUCTION ENVIRONMENT
+Host prod-boundary
+  HostName ${prod_boundary_ip}
+  User adminuser
+  IdentityFile /etc/semaphore/id_rsa
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+Host prod-vm
+  HostName ${prod_vm_ip}
+  User adminuser
+  IdentityFile /etc/semaphore/id_rsa
+  ProxyJump prod-boundary
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
 EOF
@@ -118,4 +148,9 @@ echo "=========================================="
 echo "Semaphore URL: http://$(curl -s ifconfig.me):3000"
 echo "Username: admin"
 echo "Password: ${admin_password}"
+echo ""
+echo "Environments configured:"
+echo "  - DEV: ${dev_vm_ip} (via ${dev_boundary_ip})"
+echo "  - STAGING: ${staging_vm_ip} (via ${staging_boundary_ip})"
+echo "  - PROD: ${prod_vm_ip} (via ${prod_boundary_ip})"
 echo "=========================================="

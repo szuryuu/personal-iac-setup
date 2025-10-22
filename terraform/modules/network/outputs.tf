@@ -42,12 +42,6 @@ output "boundary_subnet_id" {
   value       = azurerm_subnet.boundary_controller_subnet.id
 }
 
-# Semaphore Outputs
-output "semaphore_subnet_id" {
-  description = "The ID of the Semaphore subnet"
-  value       = azurerm_subnet.semaphore_subnet.id
-}
-
 # VM Outputs
 output "vm_public_ip" {
   description = "The public IP address of the VM"

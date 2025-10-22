@@ -58,14 +58,6 @@ resource "azurerm_subnet" "boundary_controller_subnet" {
   address_prefixes     = [var.boundary_subnet_cidr]
 }
 
-# # SEMAPHORE SUBNET
-# resource "azurerm_subnet" "semaphore_subnet" {
-#   name                 = "${var.environment}-semaphore-subnet"
-#   resource_group_name  = var.resource_group_name
-#   virtual_network_name = azurerm_virtual_network.network.name
-#   address_prefixes     = [var.semaphore_subnet_cidr]
-# }
-
 # MYSQL DNS ZONE
 resource "azurerm_private_dns_zone" "mysql_dns_zone" {
   count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
