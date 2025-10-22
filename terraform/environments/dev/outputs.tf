@@ -106,12 +106,12 @@ output "db_fqdn" {
   value       = module.database.mysql_fqdn
 }
 
-output "semaphore_public_ip" {
-  description = "The public IP address of the Semaphore server."
-  value       = module.semaphore.semaphore_public_ip
+output "vnet_id" {
+  description = "The ID of the dev virtual network."
+  value       = module.network.vnet_id
 }
 
-output "semaphore_private_ip" {
-  description = "The private IP address of the Semaphore server."
-  value       = module.semaphore.semaphore_private_ip
+output "vnet_name" {
+  description = "The name of the dev virtual network."
+  value       = module.network.vnet_name
 }

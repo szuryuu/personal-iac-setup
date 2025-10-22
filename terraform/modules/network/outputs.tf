@@ -65,3 +65,13 @@ output "private_dns_zone_link" {
   description = "MySQL DNS zone link (legacy)"
   value       = azurerm_private_dns_zone_virtual_network_link.mysql_dns_zone_link.id
 }
+
+output "vnet_id" {
+  description = "The ID of the virtual network."
+  value       = azurerm_virtual_network.network.id
+}
+
+output "vnet_name" {
+  description = "The name of the virtual network."
+  value       = azurerm_virtual_network.network.name
+}

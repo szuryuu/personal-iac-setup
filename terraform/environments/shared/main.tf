@@ -22,12 +22,12 @@ data "azurerm_key_vault" "existing" {
 }
 
 data "azurerm_key_vault_secret" "ssh_public_key" {
-  name         = "shared-vm-ssh-public-keys"
+  name         = "dev-vm-ssh-public-keys"
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
 data "azurerm_key_vault_secret" "ssh_private_key" {
-  name         = "shared-vm-ssh-private-keys-nopass"
+  name         = "dev-vm-ssh-private-keys-nopass"
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
