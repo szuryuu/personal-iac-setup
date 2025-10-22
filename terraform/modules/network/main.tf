@@ -58,13 +58,13 @@ resource "azurerm_subnet" "boundary_controller_subnet" {
   address_prefixes     = [var.boundary_subnet_cidr]
 }
 
-# SEMAPHORE SUBNET
-resource "azurerm_subnet" "semaphore_subnet" {
-  name                 = "${var.environment}-semaphore-subnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.network.name
-  address_prefixes     = [var.semaphore_subnet_cidr]
-}
+# # SEMAPHORE SUBNET
+# resource "azurerm_subnet" "semaphore_subnet" {
+#   name                 = "${var.environment}-semaphore-subnet"
+#   resource_group_name  = var.resource_group_name
+#   virtual_network_name = azurerm_virtual_network.network.name
+#   address_prefixes     = [var.semaphore_subnet_cidr]
+# }
 
 # MYSQL DNS ZONE
 resource "azurerm_private_dns_zone" "mysql_dns_zone" {
@@ -259,64 +259,6 @@ resource "azurerm_network_security_group" "boundary_worker_nsg" {
   }
 }
 
-resource "azurerm_network_security_group" "semaphore_nsg" {
-  name                = "${var.environment}-semaphore-nsg"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-
-  security_rule {
-    name                       = "HTTP-Management"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "Internet"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "HTTPS-Management"
-    priority                   = 101
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "Internet"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "Semaphore-UI"
-    priority                   = 105
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "3000"
-    source_address_prefix      = "Internet"
-    destination_address_prefix = "*"
-  }
-
-  security_rule {
-    name                       = "SSH-Management"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "Internet"
-    destination_address_prefix = "*"
-  }
-
-  # lifecycle {
-  #   ignore_changes = [security_rule]
-  # }
-}
-
 # PUBLIC IP & NIC
 resource "azurerm_public_ip" "vm_public_ip" {
   name                = "${var.environment}-vm-pip"
@@ -358,9 +300,4 @@ resource "azurerm_subnet_network_security_group_association" "postgresql_subnet_
 resource "azurerm_subnet_network_security_group_association" "boundary_subnet_nsg" {
   subnet_id                 = azurerm_subnet.boundary_controller_subnet.id
   network_security_group_id = azurerm_network_security_group.boundary_worker_nsg.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "semaphore_subnet_nsg" {
-  subnet_id                 = azurerm_subnet.semaphore_subnet.id
-  network_security_group_id = azurerm_network_security_group.semaphore_nsg.id
 }

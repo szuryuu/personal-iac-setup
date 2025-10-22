@@ -40,12 +40,6 @@ variable "boundary_subnet_cidr" {
   default     = "10.0.4.0/24"
 }
 
-variable "semaphore_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the Semaphore subnet"
-  default     = "10.0.5.0/24"
-}
-
 # Environment
 variable "environment" {
   type        = string
