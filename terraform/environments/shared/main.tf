@@ -116,11 +116,11 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
     dev_boundary_ip = try(data.terraform_remote_state.dev.outputs.boundary_public_ip, "")
     dev_vm_ip       = try(data.terraform_remote_state.dev.outputs.vm_public_ip, "")
 
-    stag_boundary_ip = try(data.terraform_remote_state.stag.outputs.boundary_public_ip, "")
-    stag_vm_ip       = try(data.terraform_remote_state.stag.outputs.vm_public_ip, "")
+    # stag_boundary_ip = try(data.terraform_remote_state.stag.outputs.boundary_public_ip, "")
+    # stag_vm_ip       = try(data.terraform_remote_state.stag.outputs.vm_public_ip, "")
 
-    prod_boundary_ip = try(data.terraform_remote_state.prod.outputs.boundary_public_ip, "")
-    prod_vm_ip       = try(data.terraform_remote_state.prod.outputs.vm_public_ip, "")
+    # prod_boundary_ip = try(data.terraform_remote_state.prod.outputs.boundary_public_ip, "")
+    # prod_vm_ip       = try(data.terraform_remote_state.prod.outputs.vm_public_ip, "")
   }))
 
   tags = {
