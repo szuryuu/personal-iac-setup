@@ -124,27 +124,33 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
   }))
 
   tags = {
-    environment = var.environment
-    project     = var.project_name
-    role        = "semaphore"
+    project = var.project_name
+    role    = "semaphore"
   }
 }
 
+resource "azurerm_subnet" "semaphore_subnet" {
+  name                 = "semaphore-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.network.name
+  address_prefixes     = [var.semaphore_subnet_cidr]
+}
+
 resource "azurerm_network_interface" "semaphore_nic" {
-  name                = "${var.environment}-semaphore-nic"
+  name                = "semaphore-nic"
   resource_group_name = var.resource_group_name
   location            = data.azurerm_resource_group.main.location
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = var.semaphore_subnet_id
+    subnet_id                     = azurerm_subnet.semaphore_subnet.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.semaphore_pip.id
   }
 }
 
 resource "azurerm_public_ip" "semaphore_pip" {
-  name                = "${var.environment}-semaphore-pip"
+  name                = "semaphore-pip"
   resource_group_name = var.resource_group_name
   location            = data.azurerm_resource_group.main.location
   allocation_method   = "Static"
@@ -152,7 +158,7 @@ resource "azurerm_public_ip" "semaphore_pip" {
 }
 
 resource "azurerm_network_security_group" "semaphore_nsg" {
-  name                = "${var.environment}-semaphore-nsg"
+  name                = "semaphore-nsg"
   resource_group_name = var.resource_group_name
   location            = data.azurerm_resource_group.main.location
 
@@ -222,6 +228,6 @@ resource "azurerm_network_security_group" "semaphore_nsg" {
 }
 
 resource "azurerm_subnet_network_security_group_association" "semaphore_nsg" {
-  subnet_id                 = azurerm_subnet.semaphore.id
+  subnet_id                 = azurerm_subnet.semaphore_subnet.id
   network_security_group_id = azurerm_network_security_group.semaphore_nsg.id
 }

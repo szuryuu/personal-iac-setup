@@ -48,7 +48,6 @@ module "network" {
   mysql_subnet_cidr       = var.mysql_subnet_cidr
   postgresql_subnet_cidr  = var.postgresql_subnet_cidr
   boundary_subnet_cidr    = var.boundary_subnet_cidr
-  semaphore_subnet_cidr   = var.semaphore_subnet_cidr
   create_private_dns_zone = true
 
   is_terratest = var.is_terratest
