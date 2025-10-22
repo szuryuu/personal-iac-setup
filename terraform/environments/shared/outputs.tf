@@ -7,3 +7,13 @@ output "semaphore_public_ip" {
   description = "The public IP address of the Semaphore VM"
   value       = azurerm_public_ip.semaphore_pip.ip_address
 }
+
+output "vnet_id" {
+  description = "The ID of the virtual network."
+  value       = module.network.vnet_id
+}
+
+output "vnet_name" {
+  description = "The Name of the virtual network."
+  value       = module.network.vnet_name
+}
