@@ -114,7 +114,7 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
     ssh_private_key  = data.azurerm_key_vault_secret.ssh_private_key.value
 
     dev_boundary_ip = try(data.terraform_remote_state.dev.outputs.boundary_public_ip, "")
-    dev_vm_ip       = try(data.terraform_remote_state.dev.outputs.vm_public_ip, "")
+    dev_vm_ip       = try(data.terraform_remote_state.dev.outputs.vm_private_ip, "")
   }))
 
   tags = {
