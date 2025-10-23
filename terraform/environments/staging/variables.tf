@@ -23,12 +23,6 @@ variable "db_sku_name" {
   default     = "B_Standard_B1ms"
 }
 
-variable "backup_retention_days" {
-  type        = number
-  description = "The number of days to retain backups"
-  default     = 7
-}
-
 # Environment Configuration
 variable "environment" {
   type        = string
@@ -49,13 +43,6 @@ variable "vm_size" {
   default     = "Standard_B1s"
 }
 
-# Boundary VM
-variable "boundary_vm_size" {
-  type        = string
-  description = "The size of the Boundary virtual machine"
-  default     = "Standard_B2s"
-}
-
 # Networking
 variable "vnet_cidr" {
   type        = string
@@ -67,39 +54,4 @@ variable "vm_subnet_cidr" {
   type        = string
   description = "The CIDR block for the virtual machine subnet"
   default     = "10.1.1.0/24"
-}
-
-variable "mysql_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the MySQL subnet"
-  default     = "10.1.2.0/24"
-}
-
-variable "postgresql_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the PostgreSQL subnet"
-  default     = "10.1.3.0/24"
-}
-
-variable "boundary_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the Boundary subnet"
-  default     = "10.1.4.0/24"
-}
-
-variable "is_terratest" {
-  type    = bool
-  default = false
-}
-
-variable "boundary_cluster_url" {
-  type        = string
-  description = "Boundary cluster URL"
-  default     = "https://10.1.4.0:9200"
-}
-
-variable "boundary_target_id" {
-  type        = string
-  description = "The ID of the Boundary target"
-  default     = null
 }
