@@ -150,13 +150,10 @@ resource "azurerm_linux_virtual_machine" "boundary" {
   }
 
   custom_data = base64encode(templatefile("${path.module}/init.sh", {
-    db_host     = azurerm_postgresql_flexible_server.postgresql_server.fqdn
     db_username = data.azurerm_key_vault_secret.db_username.value
     db_password = data.azurerm_key_vault_secret.db_password.value
 
     encoded_db_password = urlencode(data.azurerm_key_vault_secret.db_password.value)
-    environment         = ""
-    project_name        = var.project_name
     worker_auth_key     = random_password.worker_auth_key.result
     BOUNDARY_VERSION    = "0.19.3"
   }))

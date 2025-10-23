@@ -9,12 +9,26 @@ echo "Boundary Installation - $(date)"
 echo "=========================================="
 
 # Update System and install PostgreSQL client
-echo "[1/8] Updating packages and installing utilities..."
+echo "[+] Updating packages and installing utilities..."
 apt-get update -y
 apt-get install -y curl unzip postgresql-client jq
 
+echo "[+] Installing PostgreSQL Server..."
+apt-get install -y postgresql postgresql-contrib
+systemctl enable postgresql
+systemctl start postgresql
+
+echo "[+] Configuring PostgreSQL for Boundary..."
+BOUNDARY_DB_PASSWORD="${db_password}"
+sudo -u postgres psql <<EOF
+CREATE DATABASE boundary;
+CREATE USER boundary WITH PASSWORD '$BOUNDARY_DB_PASSWORD';
+GRANT ALL PRIVILEGES ON DATABASE boundary TO boundary;
+\q
+EOF
+
 # Install Boundary
-echo "[2/8] Installing Boundary version ${BOUNDARY_VERSION}..."
+echo "[+] Installing Boundary version ${BOUNDARY_VERSION}..."
 curl -fsSL https://releases.hashicorp.com/boundary/${BOUNDARY_VERSION}/boundary_${BOUNDARY_VERSION}_linux_amd64.zip -o boundary.zip
 unzip -o boundary.zip
 sudo mv boundary /usr/local/bin/
@@ -23,21 +37,13 @@ rm boundary.zip
 boundary version
 
 # Make user and directory for Boundary
-echo "[3/8] Creating user and directory for Boundary..."
+echo "[+] Creating user and directory for Boundary..."
 sudo useradd --system --home /etc/boundary --shell /bin/false boundary || true
 sudo mkdir -p /etc/boundary /opt/boundary/data
 sudo chown -R boundary:boundary /etc/boundary /opt/boundary
 
-# Download SSL certificate for PostgreSQL
-echo "[4/8] Downloading SSL certificate for PostgreSQL..."
-sudo curl -fsSL --create-dirs \
-  -o /etc/boundary/DigiCertGlobalRootG2.crt.pem \
-  https://cacerts.digicert.com/DigiCertGlobalRootG2.crt.pem
-
-sudo chown boundary:boundary /etc/boundary/DigiCertGlobalRootG2.crt.pem
-
 # Wait for PostgreSQL Database Ready
-echo "[5/8] Waiting for PostgreSQL database at host ${db_host} to be ready..."
+echo "[+] Waiting for PostgreSQL database at host ${db_host} to be ready..."
 MAX_RETRIES=30
 RETRY_COUNT=0
 
@@ -59,7 +65,7 @@ if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
 fi
 
 # Verify database 'boundary' (already created by Terraform)
-echo "[6/8] Verifying database 'boundary'..."
+echo "[+] Verifying database 'boundary'..."
 if psql "host=${db_host} port=5432 user=${db_username} dbname=boundary sslmode=require" -c "SELECT version();" &>/dev/null; then
     echo "✓ Database 'boundary' verified."
 else
@@ -67,7 +73,7 @@ else
 fi
 
 # Generate encryption keys
-echo "[7/8] Generating encryption keys..."
+echo "[+] Generating encryption keys..."
 ROOT_KEY=$(openssl rand -base64 32)
 RECOVERY_KEY=$(openssl rand -base64 32)
 
@@ -82,11 +88,11 @@ fi
 echo "Public IP: $PUBLIC_IP"
 
 # Create configuration file
-echo "[8/8] Creating configuration file..."
+echo "[+] Creating configuration file..."
 
 # PostgreSQL connection string
-DB_URL="postgresql://${db_username}:${encoded_db_password}@${db_host}:5432/boundary?sslmode=require"
-echo "DB URL (masked): postgresql://${db_username}:***@${db_host}:5432/boundary"
+DB_URL="postgresql://boundary:${encoded_db_password}@localhost:5432/boundary?sslmode=disable"
+echo "DB URL (masked): postgresql://boundary:***@localhost:5432/boundary?sslmode=disable"
 
 # Escape special characters for sed
 ESCAPED_DB_URL=$(echo "$DB_URL" | sed -e 's/[&/\\"]/\\&/g')

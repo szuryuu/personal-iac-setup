@@ -4,6 +4,7 @@ resource "azurerm_virtual_network" "shared" {
   location            = data.azurerm_resource_group.main.location
   address_space       = [var.shared_vnet_cidr]
 }
+
 # Semaphore
 resource "azurerm_subnet" "semaphore_subnet" {
   name                 = "shared-semaphore-subnet"
@@ -109,49 +110,11 @@ resource "azurerm_subnet_network_security_group_association" "semaphore_nsg" {
 }
 
 # Boundary
-resource "azurerm_subnet" "postgresql_subnet" {
-  name                 = "boundary-postgresql-subnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.network.name
-  address_prefixes     = [var.postgresql_subnet_cidr]
-  service_endpoints    = ["Microsoft.Storage"]
-
-  delegation {
-    name = "postgresql-delegation"
-    service_delegation {
-      name = "Microsoft.DBforPostgreSQL/flexibleServers"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
-}
-
 resource "azurerm_subnet" "boundary_controller_subnet" {
   name                 = "boundary-controller-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.network.name
   address_prefixes     = [var.boundary_subnet_cidr]
-}
-
-resource "azurerm_private_dns_zone" "postgresql_dns_zone" {
-  count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
-  name                = "privatelink.postgres.database.azure.com"
-  resource_group_name = var.resource_group_name
-}
-
-data "azurerm_private_dns_zone" "existing_postgresql_dns_zone" {
-  count               = !var.create_private_dns_zone && !var.is_terratest ? 1 : 0
-  name                = "privatelink.postgres.database.azure.com"
-  resource_group_name = var.resource_group_name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "postgresql_dns_zone_link" {
-  name                  = "postgresql-dns-vnet-link"
-  resource_group_name   = var.resource_group_name
-  private_dns_zone_name = (var.create_private_dns_zone || var.is_terratest) ? azurerm_private_dns_zone.postgresql_dns_zone[0].name : data.azurerm_private_dns_zone.existing_postgresql_dns_zone[0].name
-  virtual_network_id    = azurerm_virtual_network.network.id
-  registration_enabled  = false
 }
 
 resource "azurerm_network_security_group" "boundary_worker_nsg" {
@@ -198,11 +161,6 @@ resource "azurerm_network_security_group" "boundary_worker_nsg" {
   lifecycle {
     ignore_changes = [security_rule]
   }
-}
-
-resource "azurerm_subnet_network_security_group_association" "postgresql_subnet_nsg" {
-  subnet_id                 = azurerm_subnet.postgresql_subnet.id
-  network_security_group_id = azurerm_network_security_group.database_nsg.id
 }
 
 resource "azurerm_subnet_network_security_group_association" "boundary_subnet_nsg" {
