@@ -76,6 +76,18 @@ resource "azurerm_network_security_group" "semaphore_nsg" {
   }
 
   security_rule {
+    name                       = "ByteBase"
+    priority                   = 106
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8080"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
     name                       = "SSH-Management"
     priority                   = 110
     direction                  = "Inbound"
