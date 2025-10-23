@@ -71,9 +71,9 @@ data "terraform_remote_state" "prod" {
   }
 }
 
-# Semaphore VM
-resource "azurerm_linux_virtual_machine" "semaphore" {
-  name                = "shared-semaphore"
+# Tool VM
+resource "azurerm_linux_virtual_machine" "tool" {
+  name                = "shared-tool"
   admin_username      = "adminuser"
   resource_group_name = var.resource_group_name
   location            = data.azurerm_resource_group.main.location
@@ -83,7 +83,7 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
   provision_vm_agent              = true
   allow_extension_operations      = false
 
-  network_interface_ids = [azurerm_network_interface.semaphore_nic.id]
+  network_interface_ids = [azurerm_network_interface.tool_nic.id]
 
   admin_ssh_key {
     username   = "adminuser"
@@ -104,19 +104,19 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
   }
 
   custom_data = base64encode(templatefile("${path.module}/scripts/tools-init.sh", {
-    admin_password   = var.semaphore_admin_password
+    admin_password   = var.tool_admin_password
     db_dialect       = "bolt"
     ansible_repo_url = "https://github.com/szuryuu/personal-iac-setup"
     ssh_private_key  = data.azurerm_key_vault_secret.ssh_private_key.value
 
-    # dev_boundary_ip = try(data.terraform_remote_state.dev.outputs.boundary_public_ip, "")
+    dev_boundary_ip = azurerm_public_ip.boundary_pip.ip_address
     dev_vm_ip       = try(data.terraform_remote_state.dev.outputs.vm_private_ip, "")
   }))
 
   tags = {
     environment = "shared"
     project     = var.project_name
-    role        = "semaphore"
+    role        = "tool"
   }
 }
 

@@ -5,37 +5,37 @@ resource "azurerm_virtual_network" "shared" {
   address_space       = [var.shared_vnet_cidr]
 }
 
-# Semaphore
-resource "azurerm_subnet" "semaphore_subnet" {
-  name                 = "shared-semaphore-subnet"
+# Tool
+resource "azurerm_subnet" "tool_subnet" {
+  name                 = "shared-tool-subnet"
   resource_group_name  = data.azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.shared.name
-  address_prefixes     = [var.semaphore_subnet_cidr]
+  address_prefixes     = [var.tool_subnet_cidr]
 }
 
-resource "azurerm_network_interface" "semaphore_nic" {
-  name                = "semaphore-nic"
+resource "azurerm_network_interface" "tool_nic" {
+  name                = "tool-nic"
   resource_group_name = var.resource_group_name
   location            = data.azurerm_resource_group.main.location
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.semaphore_subnet.id
+    subnet_id                     = azurerm_subnet.tool_subnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.semaphore_pip.id
+    public_ip_address_id          = azurerm_public_ip.tool_pip.id
   }
 }
 
-resource "azurerm_public_ip" "semaphore_pip" {
-  name                = "semaphore-pip"
+resource "azurerm_public_ip" "tool_pip" {
+  name                = "tool-pip"
   resource_group_name = var.resource_group_name
   location            = data.azurerm_resource_group.main.location
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
-resource "azurerm_network_security_group" "semaphore_nsg" {
-  name                = "semaphore-nsg"
+resource "azurerm_network_security_group" "tool_nsg" {
+  name                = "tool-nsg"
   resource_group_name = var.resource_group_name
   location            = data.azurerm_resource_group.main.location
 
@@ -116,9 +116,9 @@ resource "azurerm_network_security_group" "semaphore_nsg" {
   # }
 }
 
-resource "azurerm_subnet_network_security_group_association" "semaphore_nsg" {
-  subnet_id                 = azurerm_subnet.semaphore_subnet.id
-  network_security_group_id = azurerm_network_security_group.semaphore_nsg.id
+resource "azurerm_subnet_network_security_group_association" "tool_nsg" {
+  subnet_id                 = azurerm_subnet.tool_subnet.id
+  network_security_group_id = azurerm_network_security_group.tool_nsg.id
 }
 
 # Boundary

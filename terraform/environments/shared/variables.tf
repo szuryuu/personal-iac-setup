@@ -29,16 +29,16 @@ variable "vm_size" {
   default     = "Standard_B1s"
 }
 
-variable "semaphore_admin_password" {
+variable "tool_admin_password" {
   type        = string
-  description = "Semaphore admin password"
+  description = "Tool admin password"
   sensitive   = true
   default     = "changeme"
 }
 
-variable "semaphore_subnet_cidr" {
+variable "tool_subnet_cidr" {
   type        = string
-  description = "The CIDR block for the Semaphore subnet"
+  description = "The CIDR block for the tool subnet"
   default     = "10.0.5.0/24"
 }
 

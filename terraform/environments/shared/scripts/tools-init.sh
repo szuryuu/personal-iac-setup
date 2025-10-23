@@ -106,6 +106,7 @@ services:
         ports:
             - "8080:8080"
         environment:
+            BB_LOG_LEVEL: info
         volumes:
             - /home/adminuser/.bytebase/data:/var/opt/bytebase
         networks:
