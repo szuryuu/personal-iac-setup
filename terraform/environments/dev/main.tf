@@ -22,17 +22,17 @@ data "azurerm_key_vault" "existing" {
 }
 
 data "azurerm_key_vault_secret" "ssh_public_key" {
-  name         = "${var.environment}-vm-ssh-public-keys"
+  name         = "ssh-public-keys"
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
 data "azurerm_key_vault_secret" "db_password" {
-  name         = "${var.environment}-db-password-login-creds"
+  name         = "db-password-login-creds"
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
 data "azurerm_key_vault_secret" "db_username" {
-  name         = "${var.environment}-db-username-login-creds"
+  name         = "db-username-login-creds"
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
