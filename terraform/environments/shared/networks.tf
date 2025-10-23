@@ -1,0 +1,211 @@
+resource "azurerm_virtual_network" "shared" {
+  name                = "shared-vnet"
+  resource_group_name = data.azurerm_resource_group.main.name
+  location            = data.azurerm_resource_group.main.location
+  address_space       = [var.shared_vnet_cidr]
+}
+# Semaphore
+resource "azurerm_subnet" "semaphore_subnet" {
+  name                 = "shared-semaphore-subnet"
+  resource_group_name  = data.azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.shared.name
+  address_prefixes     = [var.semaphore_subnet_cidr]
+}
+
+resource "azurerm_network_interface" "semaphore_nic" {
+  name                = "semaphore-nic"
+  resource_group_name = var.resource_group_name
+  location            = data.azurerm_resource_group.main.location
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.semaphore_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.semaphore_pip.id
+  }
+}
+
+resource "azurerm_public_ip" "semaphore_pip" {
+  name                = "semaphore-pip"
+  resource_group_name = var.resource_group_name
+  location            = data.azurerm_resource_group.main.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_network_security_group" "semaphore_nsg" {
+  name                = "semaphore-nsg"
+  resource_group_name = var.resource_group_name
+  location            = data.azurerm_resource_group.main.location
+
+  security_rule {
+    name                       = "HTTP-Management"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "HTTPS-Management"
+    priority                   = 101
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "Semaphore-UI"
+    priority                   = 105
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3000"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "SSH-Management"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "Allow-To-Environments"
+    priority                   = 100
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  # lifecycle {
+  #   ignore_changes = [security_rule]
+  # }
+}
+
+resource "azurerm_subnet_network_security_group_association" "semaphore_nsg" {
+  subnet_id                 = azurerm_subnet.semaphore_subnet.id
+  network_security_group_id = azurerm_network_security_group.semaphore_nsg.id
+}
+
+# Boundary
+resource "azurerm_subnet" "postgresql_subnet" {
+  name                 = "boundary-postgresql-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.network.name
+  address_prefixes     = [var.postgresql_subnet_cidr]
+  service_endpoints    = ["Microsoft.Storage"]
+
+  delegation {
+    name = "postgresql-delegation"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+
+resource "azurerm_subnet" "boundary_controller_subnet" {
+  name                 = "boundary-controller-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.network.name
+  address_prefixes     = [var.boundary_subnet_cidr]
+}
+
+resource "azurerm_private_dns_zone" "postgresql_dns_zone" {
+  count               = var.create_private_dns_zone || var.is_terratest ? 1 : 0
+  name                = "privatelink.postgres.database.azure.com"
+  resource_group_name = var.resource_group_name
+}
+
+data "azurerm_private_dns_zone" "existing_postgresql_dns_zone" {
+  count               = !var.create_private_dns_zone && !var.is_terratest ? 1 : 0
+  name                = "privatelink.postgres.database.azure.com"
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "postgresql_dns_zone_link" {
+  name                  = "postgresql-dns-vnet-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = (var.create_private_dns_zone || var.is_terratest) ? azurerm_private_dns_zone.postgresql_dns_zone[0].name : data.azurerm_private_dns_zone.existing_postgresql_dns_zone[0].name
+  virtual_network_id    = azurerm_virtual_network.network.id
+  registration_enabled  = false
+}
+
+resource "azurerm_network_security_group" "boundary_worker_nsg" {
+  name                = "boundary-worker-nsg"
+  resource_group_name = var.resource_group_name
+  location            = data.azurerm_resource_group.main.location
+
+  security_rule {
+    name                       = "Boundary-Proxy"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9202"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "Boundary-API"
+    priority                   = 105
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9200"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "SSH-Management"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  lifecycle {
+    ignore_changes = [security_rule]
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "postgresql_subnet_nsg" {
+  subnet_id                 = azurerm_subnet.postgresql_subnet.id
+  network_security_group_id = azurerm_network_security_group.database_nsg.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "boundary_subnet_nsg" {
+  subnet_id                 = azurerm_subnet.boundary_controller_subnet.id
+  network_security_group_id = azurerm_network_security_group.boundary_worker_nsg.id
+}

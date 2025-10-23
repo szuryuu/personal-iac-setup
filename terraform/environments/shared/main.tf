@@ -22,12 +22,22 @@ data "azurerm_key_vault" "existing" {
 }
 
 data "azurerm_key_vault_secret" "ssh_public_key" {
-  name         = "dev-vm-ssh-public-keys"
+  name         = "ssh-public-keys"
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
 data "azurerm_key_vault_secret" "ssh_private_key" {
-  name         = "dev-vm-ssh-private-keys-nopass"
+  name         = "ssh-private-keys-nopass"
+  key_vault_id = data.azurerm_key_vault.existing.id
+}
+
+data "azurerm_key_vault_secret" "db_password" {
+  name         = "db-password-login-creds"
+  key_vault_id = data.azurerm_key_vault.existing.id
+}
+
+data "azurerm_key_vault_secret" "db_username" {
+  name         = "db-username-login-creds"
   key_vault_id = data.azurerm_key_vault.existing.id
 }
 
@@ -61,6 +71,7 @@ data "terraform_remote_state" "prod" {
   }
 }
 
+# Semaphore VM
 resource "azurerm_linux_virtual_machine" "semaphore" {
   name                = "shared-semaphore"
   admin_username      = "adminuser"
@@ -103,7 +114,61 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
   }))
 
   tags = {
-    project = var.project_name
-    role    = "semaphore"
+    environment = "shared"
+    project     = var.project_name
+    role        = "semaphore"
   }
+}
+
+# Boundary VM
+resource "azurerm_linux_virtual_machine" "boundary" {
+  name                = "shared-boundary"
+  resource_group_name = var.resource_group_name
+  location            = data.azurerm_resource_group.main.location
+  size                = var.vm_size
+  admin_username      = "adminuser"
+
+  disable_password_authentication = true
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = data.azurerm_key_vault_secret.ssh_public_key.value
+  }
+
+  network_interface_ids = [azurerm_network_interface.boundary_nic.id]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  custom_data = base64encode(templatefile("${path.module}/init.sh", {
+    db_host     = azurerm_postgresql_flexible_server.postgresql_server.fqdn
+    db_username = data.azurerm_key_vault_secret.db_username.value
+    db_password = data.azurerm_key_vault_secret.db_password.value
+
+    encoded_db_password = urlencode(data.azurerm_key_vault_secret.db_password.value)
+    environment         = ""
+    project_name        = var.project_name
+    worker_auth_key     = random_password.worker_auth_key.result
+    BOUNDARY_VERSION    = "0.19.3"
+  }))
+
+  tags = {
+    environment = "shared"
+    project     = var.project_name
+    service     = "boundary"
+  }
+}
+
+resource "random_password" "worker_auth_key" {
+  length  = 32
+  special = false
 }
