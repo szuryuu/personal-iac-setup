@@ -6,6 +6,7 @@ key_vault_name      = "rg-intern-devops"
 # Network Configuration
 shared_vnet_cidr       = "10.100.0.0/16"
 semaphore_subnet_cidr  = "10.100.1.0/24"
+boundary_subnet_cidr   = "10.100.3.0/24"
 
 # VM Configuration
 vm_size = "Standard_B2s"

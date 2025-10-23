@@ -9,12 +9,12 @@ echo "Semaphore Installation - $(date)"
 echo "=========================================="
 
 # Update system
-echo "[1/8] Updating system..."
+echo "[+] Updating system..."
 apt-get update -y
 apt-get upgrade -y
 
 # Install Docker
-echo "[2/8] Installing Docker..."
+echo "[+] Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 systemctl enable docker
@@ -22,17 +22,17 @@ systemctl start docker
 usermod -aG docker adminuser
 
 # Install Docker Compose
-echo "[3/8] Installing Docker Compose..."
+echo "[+] Installing Docker Compose..."
 curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
 # Setup data disk
-echo "[4/8] Setting up data disk..."
+echo "[+] Setting up data disk..."
 mkdir -p /mnt/semaphore-data/{db,ssh,ansible}
 chown -R 1001:1001 /mnt/semaphore-data
 
 # Setup SSH key
-echo "[5/8] Setting up SSH keys..."
+echo "[+] Setting up SSH keys..."
 cat > /mnt/semaphore-data/ssh/id_rsa << 'EOF'
 ${ssh_private_key}
 EOF
@@ -40,7 +40,7 @@ chown 1001:1001 /mnt/semaphore-data/ssh/id_rsa
 chmod 600 /mnt/semaphore-data/ssh/id_rsa
 
 # Setup SSH config
-echo "[6/8] Setting up SSH config..."
+echo "[+] Setting up SSH config..."
 cat > /mnt/semaphore-data/ssh/config << 'EOF'
 # DEV ENVIRONMENT
 Host dev-boundary
@@ -62,14 +62,14 @@ chown 1001:1001 /mnt/semaphore-data/ssh/config
 chmod 644 /mnt/semaphore-data/ssh/config
 
 # Clone Ansible repo (if Git URL provided)
-echo "[7/8] Cloning Ansible repository..."
+echo "[+] Cloning Ansible repository..."
 if [ ! -z "${ansible_repo_url}" ]; then
     git clone ${ansible_repo_url} /mnt/semaphore-data/piac
     chown -R 1001:1001 /mnt/semaphore-data/piac/ansible
 fi
 
 # Setup Docker Compose
-echo "[8/8] Setting up Semaphore with Docker Compose..."
+echo "[+] Setting up Semaphore with Docker Compose..."
 cat > /home/adminuser/docker-compose.yml << 'EOF'
 version: '3.8'
 

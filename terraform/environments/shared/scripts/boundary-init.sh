@@ -42,36 +42,6 @@ sudo useradd --system --home /etc/boundary --shell /bin/false boundary || true
 sudo mkdir -p /etc/boundary /opt/boundary/data
 sudo chown -R boundary:boundary /etc/boundary /opt/boundary
 
-# Wait for PostgreSQL Database Ready
-echo "[+] Waiting for PostgreSQL database at host ${db_host} to be ready..."
-MAX_RETRIES=30
-RETRY_COUNT=0
-
-export PGPASSWORD="${db_password}"
-
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if psql "host=${db_host} port=5432 user=${db_username} dbname=postgres sslmode=require" -c "SELECT 1" &>/dev/null; then
-        echo "✓ PostgreSQL database at host ${db_host} is ready."
-        break
-    fi
-    echo "  Waiting for database... attempt $((RETRY_COUNT + 1))/$MAX_RETRIES"
-    sleep 10
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-done
-
-if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-    echo "✗ ERROR: Timeout waiting for PostgreSQL database."
-    exit 1
-fi
-
-# Verify database 'boundary' (already created by Terraform)
-echo "[+] Verifying database 'boundary'..."
-if psql "host=${db_host} port=5432 user=${db_username} dbname=boundary sslmode=require" -c "SELECT version();" &>/dev/null; then
-    echo "✓ Database 'boundary' verified."
-else
-    echo "✗ WARNING: Database 'boundary' not found. Terraform should have created it."
-fi
-
 # Generate encryption keys
 echo "[+] Generating encryption keys..."
 ROOT_KEY=$(openssl rand -base64 32)
@@ -269,7 +239,6 @@ echo "Worker Proxy: $PUBLIC_IP:9202"
 echo ""
 echo "Database Info:"
 echo "  Type: PostgreSQL"
-echo "  Host: ${db_host}"
 echo "  Database: boundary"
 echo ""
 systemctl status boundary-controller --no-pager -l | head -10

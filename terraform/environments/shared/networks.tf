@@ -113,7 +113,7 @@ resource "azurerm_subnet_network_security_group_association" "semaphore_nsg" {
 resource "azurerm_subnet" "boundary_controller_subnet" {
   name                 = "boundary-controller-subnet"
   resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.network.name
+  virtual_network_name = azurerm_virtual_network.shared.name
   address_prefixes     = [var.boundary_subnet_cidr]
 }
 
@@ -160,6 +160,32 @@ resource "azurerm_network_security_group" "boundary_worker_nsg" {
 
   lifecycle {
     ignore_changes = [security_rule]
+  }
+}
+
+resource "azurerm_network_interface" "boundary_nic" {
+  name                = "boundary-nic"
+  resource_group_name = var.resource_group_name
+  location            = data.azurerm_resource_group.main.location
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.boundary_controller_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.boundary_pip.id
+  }
+}
+
+resource "azurerm_public_ip" "boundary_pip" {
+  name                = "boundary-pip"
+  resource_group_name = var.resource_group_name
+  location            = data.azurerm_resource_group.main.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+
+  tags = {
+    environment = "shared"
+    project     = var.project_name
   }
 }
 
