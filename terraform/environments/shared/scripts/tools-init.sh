@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-exec > >(tee /var/log/semaphore-install.log)
+exec > >(tee /var/log/tools-install.log)
 exec 2>&1
 
 echo "=========================================="
-echo "Semaphore Installation - $(date)"
+echo "Tools Installation - $(date)"
 echo "=========================================="
 
 # Update system
@@ -61,7 +61,7 @@ EOF
 chown 1001:1001 /mnt/semaphore-data/ssh/config
 chmod 644 /mnt/semaphore-data/ssh/config
 
-# Clone Ansible repo (if Git URL provided)
+# Clone Ansible repo
 echo "[+] Cloning Ansible repository..."
 if [ ! -z "${ansible_repo_url}" ]; then
     git clone ${ansible_repo_url} /mnt/semaphore-data/piac
@@ -74,39 +74,56 @@ cat > /home/adminuser/docker-compose.yml << 'EOF'
 version: '3.8'
 
 services:
-  semaphore:
-    image: semaphoreui/semaphore:latest
-    container_name: semaphore
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      SEMAPHORE_DB_DIALECT: ${db_dialect}
-      SEMAPHORE_ADMIN: admin
-      SEMAPHORE_ADMIN_PASSWORD: ${admin_password}
-      SEMAPHORE_ADMIN_NAME: Admin
-      SEMAPHORE_ADMIN_EMAIL: admin@localhost
-      ANSIBLE_LOCAL_TEMP: /tmp
-      SEMAPHORE_TMP_PATH: /tmp
-      ANSIBLE_GALAXY_CACHE_DIR: /tmp
-      ANSIBLE_GALAXY_SERVER_CACHE_PATH: /tmp
-    volumes:
-      - /mnt/semaphore-data/db:/tmp/semaphore
-      - /mnt/semaphore-data/piac/ansible:/ansible
-      - /mnt/semaphore-data/ssh/id_rsa:/etc/semaphore/id_rsa:ro
-      - /mnt/semaphore-data/ssh/config:/etc/semaphore/ssh_config:ro
-    networks:
-      - semaphore-net
+    semaphore:
+        image: semaphoreui/semaphore:latest
+        container_name: semaphore
+        restart: unless-stopped
+        ports:
+            - "3000:3000"
+        environment:
+            SEMAPHORE_DB_DIALECT: ${db_dialect}
+            SEMAPHORE_ADMIN: admin
+            SEMAPHORE_ADMIN_PASSWORD: ${admin_password}
+            SEMAPHORE_ADMIN_NAME: Admin
+            SEMAPHORE_ADMIN_EMAIL: admin@localhost
+            ANSIBLE_LOCAL_TEMP: /tmp
+            SEMAPHORE_TMP_PATH: /tmp
+            ANSIBLE_GALAXY_CACHE_DIR: /tmp
+            ANSIBLE_GALAXY_SERVER_CACHE_PATH: /tmp
+        volumes:
+            - /mnt/semaphore-data/db:/tmp/semaphore
+            - /mnt/semaphore-data/piac/ansible:/ansible
+            - /mnt/semaphore-data/ssh/id_rsa:/etc/semaphore/id_rsa:ro
+            - /mnt/semaphore-data/ssh/config:/etc/semaphore/ssh_config:ro
+        networks:
+            - semaphore-net
+
+    bytebase:
+        image: bytebase/bytebase:latest
+        container_name: bytebase
+        restart: unless-stopped
+        init: true
+        ports:
+            - "8080:8080"
+        environment:
+        volumes:
+            - /home/adminuser/.bytebase/data:/var/opt/bytebase
+        networks:
+            - bytebase-net
 
 networks:
-  semaphore-net:
-    driver: bridge
+    semaphore-net:
+        driver: bridge
+
+    bytebase-net:
+        driver: bridge
+
 EOF
 
 chown adminuser:adminuser /home/adminuser/docker-compose.yml
 
-# Start Semaphore
-echo "Starting Semaphore..."
+# Start Tools...
+echo "Starting Tools..."
 cd /home/adminuser
 docker-compose up -d
 
@@ -119,4 +136,7 @@ echo "Password: ${admin_password}"
 echo ""
 echo "Environments configured:"
 echo "  - DEV: ${dev_vm_ip} (via ${dev_boundary_ip})"
+echo ""
+echo ""
+echo "Bytebase URL: http://$(curl -s ifconfig.me):8080"
 echo "=========================================="

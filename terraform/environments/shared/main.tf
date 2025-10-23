@@ -103,13 +103,13 @@ resource "azurerm_linux_virtual_machine" "semaphore" {
     version   = "latest"
   }
 
-  custom_data = base64encode(templatefile("${path.module}/scripts/semaphore-init.sh", {
+  custom_data = base64encode(templatefile("${path.module}/scripts/tools-init.sh", {
     admin_password   = var.semaphore_admin_password
     db_dialect       = "bolt"
     ansible_repo_url = "https://github.com/szuryuu/personal-iac-setup"
     ssh_private_key  = data.azurerm_key_vault_secret.ssh_private_key.value
 
-    dev_boundary_ip = try(data.terraform_remote_state.dev.outputs.boundary_public_ip, "")
+    # dev_boundary_ip = try(data.terraform_remote_state.dev.outputs.boundary_public_ip, "")
     dev_vm_ip       = try(data.terraform_remote_state.dev.outputs.vm_private_ip, "")
   }))
 
