@@ -22,3 +22,8 @@ output "boundary_api_url" {
   description = "Boundary API URL for client connections"
   value       = "http://${azurerm_public_ip.boundary_pip.ip_address}:9200"
 }
+
+output "boundary_proxy_url" {
+  description = "Boundary Proxy URL for client connections"
+  value       = "http://${azurerm_public_ip.boundary_pip.ip_address}:9202"
+}
