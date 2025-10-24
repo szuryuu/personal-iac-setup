@@ -307,6 +307,11 @@ echo "Database Info:"
 echo "  Type: PostgreSQL"
 echo "  Database: boundary"
 echo ""
+echo "Boundary Info:"
+echo "  DEV TARGET ID: $TARGET_ID"
+echo "  STAGING TARGET ID: $TARGET_ID"
+echo "  PROD TARGET ID: $TARGET_ID"
+echo ""
 systemctl status boundary-controller --no-pager -l | head -10
 systemctl status boundary-worker --no-pager -l | head -10
 echo "=========================================="
