@@ -111,6 +111,13 @@ resource "azurerm_linux_virtual_machine" "tool" {
 
     dev_boundary_ip = azurerm_public_ip.boundary_pip.ip_address
     dev_vm_ip       = try(data.terraform_remote_state.dev.outputs.vm_private_ip, "")
+
+    staging_boundary_ip = azurerm_public_ip.boundary_pip.ip_address
+    staging_vm_ip       = try(data.terraform_remote_state.staging.outputs.vm_private_ip, "")
+
+    prod_boundary_ip = azurerm_public_ip.boundary_pip.ip_address
+    prod_vm_ip       = try(data.terraform_remote_state.prod.outputs.vm_private_ip, "")
+
   }))
 
   tags = {

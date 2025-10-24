@@ -57,6 +57,39 @@ Host dev-vm
   ProxyJump dev-boundary
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
+
+# STAGING ENVIRONMENT
+Host staging-boundary
+  HostName ${staging_boundary_ip}
+  User adminuser
+  IdentityFile /etc/semaphore/id_rsa
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+Host staging-vm
+  HostName ${staging_vm_ip}
+  User adminuser
+  IdentityFile /etc/semaphore/id_rsa
+  ProxyJump staging-boundary
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+# PROD ENVIRONMENT
+Host prod-boundary
+  HostName ${prod_boundary_ip}
+  User adminuser
+  IdentityFile /etc/semaphore/id_rsa
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+Host prod-vm
+  HostName ${prod_vm_ip}
+  User adminuser
+  IdentityFile /etc/semaphore/id_rsa
+  ProxyJump prod-boundary
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
 EOF
 chown 1001:1001 /mnt/semaphore-data/ssh/config
 chmod 644 /mnt/semaphore-data/ssh/config
@@ -137,6 +170,8 @@ echo "Password: ${admin_password}"
 echo ""
 echo "Environments configured:"
 echo "  - DEV: ${dev_vm_ip} (via ${dev_boundary_ip})"
+echo "  - STAGING: ${staging_vm_ip} (via ${staging_boundary_ip})"
+echo "  - PROD: ${prod_vm_ip} (via ${prod_boundary_ip})"
 echo ""
 echo "Bytebase URL: http://$(curl -s ifconfig.me):8080"
 echo "=========================================="

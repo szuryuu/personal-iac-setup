@@ -212,90 +212,131 @@ sudo chmod 644 /etc/systemd/system/boundary-*.service
 sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 
-# Initialize database
+# Initialize database and capture output
 echo "=========================================="
 echo "Initializing Boundary database..."
-if ! sudo -u boundary /usr/local/bin/boundary database init -config /etc/boundary/controller.hcl; then
-    echo "Database init warning (might already be initialized)"
+DB_INIT_OUTPUT=$(sudo -u boundary /usr/local/bin/boundary database init -config /etc/boundary/controller.hcl || echo "Database init warning (might already be initialized)")
+echo "$DB_INIT_OUTPUT"
+
+# Extract credentials from output if init was successful
+INITIAL_AUTH_METHOD_ID=""
+INITIAL_PASSWORD=""
+if [[ "$DB_INIT_OUTPUT" != *"Database init warning"* ]]; then
+    INITIAL_AUTH_METHOD_ID=$(echo "$DB_INIT_OUTPUT" | grep 'Auth Method ID:' | awk '{$1=$2=$3=""; print $0}' | xargs)
+    INITIAL_PASSWORD=$(echo "$DB_INIT_OUTPUT" | grep 'Password:' | awk '{$1=""; print $0}' | xargs)
+    echo "Extracted Auth Method ID: $INITIAL_AUTH_METHOD_ID"
+    # Do not echo password for security
+else
+    echo "Skipping credential extraction as database might be already initialized."
 fi
+
 
 # Start services
 echo "Starting Boundary services..."
 sudo systemctl enable boundary-controller
 sudo systemctl start boundary-controller
 
-sleep 20
+sleep 20 # Give controller time to start
 
 sudo systemctl enable boundary-worker
 sudo systemctl start boundary-worker
 
-sleep 15
+sleep 15 # Give worker time to start
 
-echo "[+] Authenticating..."
-boundary authenticate password \
-  -auth-method-id=ampw_1234567890 \
-  -login-name=admin \
-  -password=password
+# Configure Boundary Resources (only if init was successful and creds were extracted)
+DEV_TARGET_ID="N/A"
+STAGING_TARGET_ID="N/A"
+PROD_TARGET_ID="N/A"
 
-echo "[+] Creating Organization..."
-ORG_ID=$(boundary scopes create \
-  -scope-id=global \
-  -name="devops-org" \
-  -description="DevOps Organization" \
-  -format=json | jq -r '.item.id')
+if [[ -n "$INITIAL_AUTH_METHOD_ID" && -n "$INITIAL_PASSWORD" ]]; then
+    echo "[+] Authenticating to Boundary..."
+    export BOUNDARY_ADDR="http://127.0.0.1:9200"
+    echo "$INITIAL_PASSWORD" | boundary authenticate password \
+      -auth-method-id="$INITIAL_AUTH_METHOD_ID" \
+      -login-name=admin
 
-echo "[+] Creating Project..."
-PROJECT_ID=$(boundary scopes create \
-  -scope-id=$ORG_ID \
-  -name="azure-infrastructure" \
-  -description="Azure VMs" \
-  -format=json | jq -r '.item.id')
+    if [ $? -eq 0 ]; then
+        echo "[+] Authentication successful. Creating resources..."
+        echo "[+] Creating Organization..."
+        ORG_ID=$(boundary scopes create \
+          -scope-id=global \
+          -name="devops-org" \
+          -description="DevOps Organization" \
+          -format=json | jq -r '.item.id')
 
-echo "[+] Creating Host Catalog..."
-CATALOG_ID=$(boundary host-catalogs create static \
-  -scope-id=$PROJECT_ID \
-  -name="azure-vms" \
-  -format=json | jq -r '.item.id')
+        echo "[+] Creating Project..."
+        PROJECT_ID=$(boundary scopes create \
+          -scope-id=$ORG_ID \
+          -name="azure-infrastructure" \
+          -description="Azure VMs" \
+          -format=json | jq -r '.item.id')
 
-setup_env() {
-  local ENV=$1
-  local IP=$2
+        echo "[+] Creating Host Catalog..."
+        CATALOG_ID=$(boundary host-catalogs create static \
+          -scope-id=$PROJECT_ID \
+          -name="azure-vms" \
+          -format=json | jq -r '.item.id')
 
-  echo "[+] Setting up $ENV environment..."
+        setup_env() {
+          local ENV=$1
+          local IP=$2
+          local TARGET_VAR_NAME=$3
 
-  HOST_ID=$(boundary hosts create static \
-    -host-catalog-id=$CATALOG_ID \
-    -name="${ENV}-vm" \
-    -address="$IP" \
-    -format=json | jq -r '.item.id')
+          echo "[+] Setting up $ENV environment..."
 
-  SET_ID=$(boundary host-sets create static \
-    -host-catalog-id=$CATALOG_ID \
-    -name="${ENV}-hosts" \
-    -format=json | jq -r '.item.id')
+          if [ -z "$IP" ]; then
+            echo "Warning: IP Address for $ENV is empty. Skipping Host/Target creation."
+            eval $TARGET_VAR_NAME="IP_MISSING"
+            return
+          fi
 
-  boundary host-sets add-hosts \
-    -id=$SET_ID \
-    -host=$HOST_ID > /dev/null
+          local HOST_ID
+          HOST_ID=$(boundary hosts create static \
+            -host-catalog-id=$CATALOG_ID \
+            -name="${ENV}-vm" \
+            -address="$IP" \
+            -format=json | jq -r '.item.id')
 
-  TARGET_ID=$(boundary targets create tcp \
-    -scope-id=$PROJECT_ID \
-    -name="${ENV}-vm-ssh" \
-    -description="SSH to ${ENV^^} VM" \
-    -default-port=22 \
-    -session-connection-limit=-1 \
-    -format=json | jq -r '.item.id')
+          local SET_ID
+          SET_ID=$(boundary host-sets create static \
+            -host-catalog-id=$CATALOG_ID \
+            -name="${ENV}-hosts" \
+            -format=json | jq -r '.item.id')
 
-  boundary targets add-host-sources \
-    -id=$TARGET_ID \
-    -host-source=$SET_ID > /dev/null
+          boundary host-sets add-hosts \
+            -id=$SET_ID \
+            -host=$HOST_ID > /dev/null
 
-  echo "$ENV Target ID: $TARGET_ID"
-}
+          local TARGET_ID
+          TARGET_ID=$(boundary targets create tcp \
+            -scope-id=$PROJECT_ID \
+            -name="${ENV}-vm-ssh" \
+            -description="SSH to ${ENV^^} VM" \
+            -default-port=22 \
+            -session-connection-limit=-1 \
+            -format=json | jq -r '.item.id')
 
-setup_env "dev" "$dev_ip"
-setup_env "staging" "$staging_ip"
-setup_env "prod" "$prod_ip"
+          boundary targets add-host-sources \
+            -id=$TARGET_ID \
+            -host-source=$SET_ID > /dev/null
+
+          # Store the target ID in the specified variable
+          eval $TARGET_VAR_NAME="$TARGET_ID"
+          echo "$ENV Target ID captured: ${!TARGET_VAR_NAME}"
+        }
+
+        # Use different variable names for each target ID
+        setup_env "dev" "${dev_ip}" "DEV_TARGET_ID"
+        setup_env "staging" "${staging_ip}" "STAGING_TARGET_ID"
+        setup_env "prod" "${prod_ip}" "PROD_TARGET_ID"
+
+    else
+        echo "Error: Boundary authentication failed. Skipping resource creation."
+    fi
+else
+    echo "Warning: Could not extract initial credentials or database already initialized. Skipping resource creation."
+fi
+
 
 echo "=========================================="
 echo "Installation Complete!"
@@ -303,14 +344,10 @@ echo "=========================================="
 echo "Controller API: http://$PUBLIC_IP:9200"
 echo "Worker Proxy: $PUBLIC_IP:9202"
 echo ""
-echo "Database Info:"
-echo "  Type: PostgreSQL"
-echo "  Database: boundary"
-echo ""
-echo "Boundary Info:"
-echo "  DEV TARGET ID: $TARGET_ID"
-echo "  STAGING TARGET ID: $TARGET_ID"
-echo "  PROD TARGET ID: $TARGET_ID"
+echo "Boundary Info (Target IDs might require manual check if script rerun):"
+echo "  DEV Target ID:     $DEV_TARGET_ID"
+echo "  STAGING Target ID: $STAGING_TARGET_ID"
+echo "  PROD Target ID:    $PROD_TARGET_ID"
 echo ""
 systemctl status boundary-controller --no-pager -l | head -10
 systemctl status boundary-worker --no-pager -l | head -10
