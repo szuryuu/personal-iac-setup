@@ -156,6 +156,10 @@ resource "azurerm_linux_virtual_machine" "boundary" {
     encoded_db_password = urlencode(data.azurerm_key_vault_secret.db_password.value)
     worker_auth_key     = random_password.worker_auth_key.result
     BOUNDARY_VERSION    = "0.19.3"
+
+    dev_ip     = try(data.terraform_remote_state.dev.outputs.vm_private_ip, "")
+    staging_ip = try(data.terraform_remote_state.staging.outputs.vm_private_ip, "")
+    prod_ip    = try(data.terraform_remote_state.prod.outputs.vm_private_ip, "")
   }))
 
   tags = {

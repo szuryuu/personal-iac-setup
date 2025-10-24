@@ -43,9 +43,9 @@ module "network" {
   location            = data.azurerm_resource_group.main.location
 
   # Network Configuration
-  vnet_cidr               = var.vnet_cidr
-  vm_subnet_cidr          = var.vm_subnet_cidr
-  environment  = var.environment
+  vnet_cidr      = var.vnet_cidr
+  vm_subnet_cidr = var.vm_subnet_cidr
+  environment    = var.environment
 }
 
 # COMPUTE MODULE

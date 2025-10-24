@@ -32,26 +32,8 @@ output "project_name" {
 #           ansible_host                 = module.compute.private_ip_address
 #           ansible_user                 = "adminuser"
 #           ansible_ssh_private_key_file = "~/.ssh/id_rsa"
-#           ansible_ssh_common_args      = var.boundary_target_id != null ? "-o ProxyCommand='boundary connect ssh -target-id ${var.boundary_target_id} -listen-port %p -- %h'" : ""
-#           environment                  = var.environment
-#           project_name                 = var.project_name
-#           mysql_host                   = module.database.mysql_fqdn
+#           ansible_ssh_common_args      = "-o ProxyCommand='boundary connect ssh -target-id ${var.boundary_target_id} -listen-port %p -- %h'"
 #         }
-#         "boundary-server" = {
-#           ansible_host                 = module.boundary.boundary_private_ip
-#           ansible_user                 = "adminuser"
-#           ansible_ssh_private_key_file = "~/.ssh/id_rsa"
-#           environment                  = var.environment
-#           project_name                 = var.project_name
-#           postgresql_host              = module.database.postgresql_fqdn
-#         }
-#       }
-#       vars = {
-#         environment      = var.environment
-#         project_name     = var.project_name
-#         boundary_api_url = module.boundary.boundary_api_url
-#         mysql_host       = module.database.mysql_fqdn
-#         postgresql_host  = module.database.postgresql_fqdn
 #       }
 #     }
 #   })

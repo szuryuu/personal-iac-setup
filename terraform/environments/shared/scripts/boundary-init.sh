@@ -231,6 +231,72 @@ sudo systemctl start boundary-worker
 
 sleep 15
 
+echo "[+] Authenticating..."
+boundary authenticate password \
+  -auth-method-id=ampw_1234567890 \
+  -login-name=admin \
+  -password=password
+
+echo "[+] Creating Organization..."
+ORG_ID=$(boundary scopes create \
+  -scope-id=global \
+  -name="devops-org" \
+  -description="DevOps Organization" \
+  -format=json | jq -r '.item.id')
+
+echo "[+] Creating Project..."
+PROJECT_ID=$(boundary scopes create \
+  -scope-id=$ORG_ID \
+  -name="azure-infrastructure" \
+  -description="Azure VMs" \
+  -format=json | jq -r '.item.id')
+
+echo "[+] Creating Host Catalog..."
+CATALOG_ID=$(boundary host-catalogs create static \
+  -scope-id=$PROJECT_ID \
+  -name="azure-vms" \
+  -format=json | jq -r '.item.id')
+
+setup_env() {
+  local ENV=$1
+  local IP=$2
+
+  echo "[+] Setting up $ENV environment..."
+
+  HOST_ID=$(boundary hosts create static \
+    -host-catalog-id=$CATALOG_ID \
+    -name="${ENV}-vm" \
+    -address="$IP" \
+    -format=json | jq -r '.item.id')
+
+  SET_ID=$(boundary host-sets create static \
+    -host-catalog-id=$CATALOG_ID \
+    -name="${ENV}-hosts" \
+    -format=json | jq -r '.item.id')
+
+  boundary host-sets add-hosts \
+    -id=$SET_ID \
+    -host=$HOST_ID > /dev/null
+
+  TARGET_ID=$(boundary targets create tcp \
+    -scope-id=$PROJECT_ID \
+    -name="${ENV}-vm-ssh" \
+    -description="SSH to ${ENV^^} VM" \
+    -default-port=22 \
+    -session-connection-limit=-1 \
+    -format=json | jq -r '.item.id')
+
+  boundary targets add-host-sources \
+    -id=$TARGET_ID \
+    -host-source=$SET_ID > /dev/null
+
+  echo "$ENV Target ID: $TARGET_ID"
+}
+
+setup_env "dev" "$dev_ip"
+setup_env "staging" "$staging_ip"
+setup_env "prod" "$prod_ip"
+
 echo "=========================================="
 echo "Installation Complete!"
 echo "=========================================="
