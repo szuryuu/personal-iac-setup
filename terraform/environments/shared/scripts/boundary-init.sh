@@ -327,8 +327,8 @@ if [[ -n "$INITIAL_AUTH_METHOD_ID" && -n "$INITIAL_PASSWORD" ]]; then
 
         # Use different variable names for each target ID
         setup_env "dev" "${dev_ip}" "DEV_TARGET_ID"
-        setup_env "staging" "${staging_ip}" "STAGING_TARGET_ID"
-        setup_env "prod" "${prod_ip}" "PROD_TARGET_ID"
+        # setup_env "staging" "${staging_ip}" "STAGING_TARGET_ID"
+        # setup_env "prod" "${prod_ip}" "PROD_TARGET_ID"
 
     else
         echo "Error: Boundary authentication failed. Skipping resource creation."
