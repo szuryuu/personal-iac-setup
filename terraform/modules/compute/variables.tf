@@ -41,3 +41,13 @@ variable "vm_size" {
   description = "The size of the virtual machine"
   default     = "Standard_B1s"
 }
+
+variable "db_username" {
+  type        = string
+  description = "The username for the database"
+}
+
+variable "db_password" {
+  type        = string
+  description = "The password for the database"
+}

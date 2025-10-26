@@ -58,6 +58,9 @@ module "compute" {
   network_interface_ids = module.network.nic_ids
   ssh_public_key        = data.azurerm_key_vault_secret.ssh_public_key.value
 
+  db_password = data.azurerm_key_vault_secret.db_password.value
+  db_username = data.azurerm_key_vault_secret.db_username.value
+
   environment  = var.environment
   project_name = var.project_name
 

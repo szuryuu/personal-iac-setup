@@ -28,6 +28,12 @@ resource "azurerm_linux_virtual_machine" "main" {
     version   = "latest"
   }
 
+  custom_data = templatefile("${path.module}/scripts/db-init.sh", {
+    db_password = var.db_password
+    db_username = var.db_username
+  })
+
+
   tags = {
     environment = var.environment
     project     = var.project_name
