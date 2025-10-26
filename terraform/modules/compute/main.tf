@@ -28,10 +28,11 @@ resource "azurerm_linux_virtual_machine" "main" {
     version   = "latest"
   }
 
-  custom_data = templatefile("${path.module}/scripts/db-init.sh", {
+  custom_data = base64encode(templatefile("${path.module}/scripts/db-init.sh", {
     db_password = var.db_password
     db_username = var.db_username
-  })
+    db_name     = "mydatabase"
+  }))
 
 
   tags = {

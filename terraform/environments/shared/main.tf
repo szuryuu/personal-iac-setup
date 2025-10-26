@@ -51,25 +51,25 @@ data "terraform_remote_state" "dev" {
   }
 }
 
-data "terraform_remote_state" "staging" {
-  backend = "azurerm"
-  config = {
-    resource_group_name  = "devops-intern-sandbox-rg-sandbox-sea"
-    storage_account_name = "tfstateintern"
-    container_name       = "tfstate"
-    key                  = "staging.terraform.tfstate"
-  }
-}
+# data "terraform_remote_state" "staging" {
+#   backend = "azurerm"
+#   config = {
+#     resource_group_name  = "devops-intern-sandbox-rg-sandbox-sea"
+#     storage_account_name = "tfstateintern"
+#     container_name       = "tfstate"
+#     key                  = "staging.terraform.tfstate"
+#   }
+# }
 
-data "terraform_remote_state" "prod" {
-  backend = "azurerm"
-  config = {
-    resource_group_name  = "devops-intern-sandbox-rg-sandbox-sea"
-    storage_account_name = "tfstateintern"
-    container_name       = "tfstate"
-    key                  = "prod.terraform.tfstate"
-  }
-}
+# data "terraform_remote_state" "prod" {
+#   backend = "azurerm"
+#   config = {
+#     resource_group_name  = "devops-intern-sandbox-rg-sandbox-sea"
+#     storage_account_name = "tfstateintern"
+#     container_name       = "tfstate"
+#     key                  = "prod.terraform.tfstate"
+#   }
+# }
 
 # Tool VM
 resource "azurerm_linux_virtual_machine" "tool" {
