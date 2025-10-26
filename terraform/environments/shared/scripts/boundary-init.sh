@@ -71,7 +71,7 @@ ESCAPED_WORKER_AUTH_KEY=$(echo "${worker_auth_key}" | sed -e 's/[&/\\"]/\\&/g')
 ESCAPED_RECOVERY_KEY=$(echo "$RECOVERY_KEY" | sed -e 's/[&/\\"]/\\&/g')
 
 # Controller config
-cat << 'CONTROLLER_CONFIG' | sed \
+cat <<'CONTROLLER_CONFIG' | sed \
     -e "s|{{DB_URL}}|\"$ESCAPED_DB_URL\"|g" \
     -e "s|{{ROOT_KEY}}|\"$ESCAPED_ROOT_KEY\"|g" \
     -e "s|{{WORKER_AUTH_KEY}}|\"$ESCAPED_WORKER_AUTH_KEY\"|g" \
@@ -122,7 +122,7 @@ kms "aead" {
 CONTROLLER_CONFIG
 
 # Worker config
-cat << 'WORKER_CONFIG' | sed \
+cat <<'WORKER_CONFIG' | sed \
     -e "s|{{PUBLIC_IP}}|$PUBLIC_IP|g" \
     -e "s|{{WORKER_AUTH_KEY}}|\"$ESCAPED_WORKER_AUTH_KEY\"|g" \
     > /etc/boundary/worker.hcl
@@ -157,7 +157,7 @@ grep -v "key.*=" /etc/boundary/controller.hcl | head -20
 
 # ================== SYSTEMD SERVICES ==================
 
-cat > /etc/systemd/system/boundary-controller.service << 'CONTROLLER_SERVICE'
+cat > /etc/systemd/system/boundary-controller.service <<'CONTROLLER_SERVICE'
 [Unit]
 Description=HashiCorp Boundary Controller
 After=network-online.target
@@ -180,7 +180,7 @@ LimitNOFILE=65536
 WantedBy=multi-user.target
 CONTROLLER_SERVICE
 
-cat > /etc/systemd/system/boundary-worker.service << 'WORKER_SERVICE'
+cat > /etc/systemd/system/boundary-worker.service <<'WORKER_SERVICE'
 [Unit]
 Description=HashiCorp Boundary Worker
 After=network-online.target
@@ -222,8 +222,8 @@ echo "$DB_INIT_OUTPUT"
 INITIAL_AUTH_METHOD_ID=""
 INITIAL_PASSWORD=""
 if [[ "$DB_INIT_OUTPUT" != *"Database init warning"* ]]; then
-    INITIAL_AUTH_METHOD_ID=$(echo "$DB_INIT_OUTPUT" | grep 'Auth Method ID:' | awk '{$1=$2=$3=""; print $0}' | xargs)
-    INITIAL_PASSWORD=$(echo "$DB_INIT_OUTPUT" | grep 'Password:' | awk '{$1=""; print $0}' | xargs)
+    INITIAL_AUTH_METHOD_ID=$(echo "$DB_INIT_OUTPUT" | grep 'Auth Method ID:' | awk '{print $4}')
+    INITIAL_PASSWORD=$(echo "$DB_INIT_OUTPUT" | grep 'Password:' | awk '{print $2}')
     echo "Extracted Auth Method ID: $INITIAL_AUTH_METHOD_ID"
     # Do not echo password for security
 else
@@ -252,17 +252,16 @@ if [[ -n "$INITIAL_AUTH_METHOD_ID" && -n "$INITIAL_PASSWORD" ]]; then
     echo "[+] Authenticating to Boundary..."
     export BOUNDARY_ADDR="http://127.0.0.1:9200"
     echo "$INITIAL_PASSWORD" | boundary authenticate password \
-      -auth-method-id="$INITIAL_AUTH_METHOD_ID" \
-      -login-name=admin
-
+        -auth-method-id="$INITIAL_AUTH_METHOD_ID" \
+        -login-name=admin
     if [ $? -eq 0 ]; then
         echo "[+] Authentication successful. Creating resources..."
         echo "[+] Creating Organization..."
         ORG_ID=$(boundary scopes create \
-          -scope-id=global \
-          -name="devops-org" \
-          -description="DevOps Organization" \
-          -format=json | jq -r '.item.id')
+            -scope-id=global \
+            -name="devops-org" \
+            -description="DevOps Organization" \
+            -format=json | jq -r '.item.id')
 
         echo "[+] Creating Project..."
         PROJECT_ID=$(boundary scopes create \
@@ -293,14 +292,14 @@ if [[ -n "$INITIAL_AUTH_METHOD_ID" && -n "$INITIAL_PASSWORD" ]]; then
           local HOST_ID
           HOST_ID=$(boundary hosts create static \
             -host-catalog-id=$CATALOG_ID \
-            -name="${ENV}-vm" \
+            -name="$ENV-vm" \
             -address="$IP" \
             -format=json | jq -r '.item.id')
 
           local SET_ID
           SET_ID=$(boundary host-sets create static \
             -host-catalog-id=$CATALOG_ID \
-            -name="${ENV}-hosts" \
+            -name="$ENV-hosts" \
             -format=json | jq -r '.item.id')
 
           boundary host-sets add-hosts \
@@ -310,8 +309,8 @@ if [[ -n "$INITIAL_AUTH_METHOD_ID" && -n "$INITIAL_PASSWORD" ]]; then
           local TARGET_ID
           TARGET_ID=$(boundary targets create tcp \
             -scope-id=$PROJECT_ID \
-            -name="${ENV}-vm-ssh" \
-            -description="SSH to ${ENV^^} VM" \
+            -name="$ENV-vm-ssh" \
+            -description="SSH to $(echo $ENV | tr '[:lower:]' '[:upper:]') VM" \
             -default-port=22 \
             -session-connection-limit=-1 \
             -format=json | jq -r '.item.id')
@@ -322,7 +321,7 @@ if [[ -n "$INITIAL_AUTH_METHOD_ID" && -n "$INITIAL_PASSWORD" ]]; then
 
           # Store the target ID in the specified variable
           eval $TARGET_VAR_NAME="$TARGET_ID"
-          echo "$ENV Target ID captured: ${!TARGET_VAR_NAME}"
+          echo "$ENV Target ID captured: $(eval echo \$$TARGET_VAR_NAME)"
         }
 
         # Use different variable names for each target ID
