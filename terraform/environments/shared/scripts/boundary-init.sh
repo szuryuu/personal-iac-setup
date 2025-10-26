@@ -225,9 +225,11 @@ if [[ "$DB_INIT_OUTPUT" != *"Database init warning"* ]]; then
     INITIAL_AUTH_METHOD_ID=$(echo "$DB_INIT_OUTPUT" | grep 'Auth Method ID:' | awk '{$1=$2=$3=""; print $0}' | xargs)
     INITIAL_PASSWORD=$(echo "$DB_INIT_OUTPUT" | grep 'Password:' | awk '{$1=""; print $0}' | xargs)
     echo "Extracted Auth Method ID: $INITIAL_AUTH_METHOD_ID"
+    # Do not echo password for security
 else
     echo "Skipping credential extraction as database might be already initialized."
 fi
+
 
 # Start services
 echo "Starting Boundary services..."
@@ -325,6 +327,8 @@ if [[ -n "$INITIAL_AUTH_METHOD_ID" && -n "$INITIAL_PASSWORD" ]]; then
 
         # Use different variable names for each target ID
         setup_env "dev" "${dev_ip}" "DEV_TARGET_ID"
+        setup_env "staging" "${staging_ip}" "STAGING_TARGET_ID"
+        setup_env "prod" "${prod_ip}" "PROD_TARGET_ID"
 
     else
         echo "Error: Boundary authentication failed. Skipping resource creation."
@@ -342,6 +346,8 @@ echo "Worker Proxy: $PUBLIC_IP:9202"
 echo ""
 echo "Boundary Info (Target IDs might require manual check if script rerun):"
 echo "  DEV Target ID:     $DEV_TARGET_ID"
+echo "  STAGING Target ID: $STAGING_TARGET_ID"
+echo "  PROD Target ID:    $PROD_TARGET_ID"
 echo ""
 systemctl status boundary-controller --no-pager -l | head -10
 systemctl status boundary-worker --no-pager -l | head -10
