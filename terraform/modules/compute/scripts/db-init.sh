@@ -13,17 +13,18 @@ sudo DEBIAN_FRONTEND=noninteractive apt install -y mysql-server
 sudo systemctl enable mysql
 sudo systemctl start mysql
 
-echo "Create Database"
+echo "Configure MySQL to listen on all interfaces"
+sudo sed -i 's/bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
 
-mysql -u root -p${db_password} -e "CREATE DATABASE ${db_name};"
+echo "Set root password and create database"
+mysql -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${db_password}';
+FLUSH PRIVILEGES;
+CREATE DATABASE IF NOT EXISTS ${db_name};
+CREATE USER IF NOT EXISTS '${db_username}'@'%' IDENTIFIED BY '${db_password}';
+GRANT ALL PRIVILEGES ON *.* TO '${db_username}'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+EOF
 
-echo "Create User"
-mysql -u root -p${db_password} -e "CREATE USER '${db_username}'@'%' IDENTIFIED BY '${db_password}';"
-
-echo "Grant Privileges"
-mysql -u root -p${db_password} -e "GRANT ALL PRIVILEGES ON ${db_username}.* TO '${db_username}'@'%';"
-
-echo "Flush Privileges"
-mysql -u root -p${db_password} -e "FLUSH PRIVILEGES;"
-
-echo "MySQL Setup Completed"
+echo "Restart MySQL"
+sudo systemctl restart mysql
