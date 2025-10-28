@@ -70,7 +70,6 @@ CHANGELOG_EOF
 cat > /mnt/liquibase-data/liquibase.properties << 'PROPS_EOF'
 changeLogFile=changelog/changelog.xml
 driver=com.mysql.cj.jdbc.Driver
-classpath=/liquibase/lib/mysql-connector-java.jar
 PROPS_EOF
 
 # Setup SSH config
@@ -135,6 +134,10 @@ if [ ! -z "${ansible_repo_url}" ]; then
     chown -R 1001:1001 /mnt/semaphore-data/piac/ansible
 fi
 
+echo "[+] Downloading MySQL JDBC Driver..."
+mkdir -p /mnt/liquibase-data/lib
+curl -L "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar" -o /mnt/liquibase-data/lib/mysql-connector-java.jar
+
 # Setup Docker Compose
 echo "[+] Setting up Semaphore with Docker Compose..."
 cat > /home/adminuser/docker-compose.yml << 'EOF'
@@ -168,14 +171,15 @@ services:
         container_name: liquibase
         restart: unless-stopped
         init: true
-        ports:
-            - "8080:8080"
         environment:
             LIQUIBASE_COMMAND_URL: jdbc:mysql://${dev_vm_ip}:3306/mydatabase
             LIQUIBASE_COMMAND_USERNAME: ${db_username}
             LIQUIBASE_COMMAND_PASSWORD: ${db_password}
         volumes:
-            - /mnt/liquibase-data:/liquibase
+            - /mnt/liquibase-data/liquibase.properties:/liquibase/liquibase.properties
+            - /mnt/liquibase-data/changelog:/liquibase/changelog
+            - /mnt/liquibase-data/lib/mysql-connector-java.jar:/liquibase/lib/mysql-connector-java.jar
+        command: ["sleep", "infinity"]
         networks:
             - tools-net
 
