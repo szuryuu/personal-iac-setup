@@ -29,6 +29,7 @@ chmod +x /usr/local/bin/docker-compose
 # Setup data disk
 echo "[+] Setting up data disk..."
 mkdir -p /mnt/semaphore-data/{db,ssh,ansible}
+mkdir -p /mnt/liquibase-data/{scripts,changelog}
 chown -R 1001:1001 /mnt/semaphore-data
 
 # Setup SSH key
@@ -38,6 +39,39 @@ ${ssh_private_key}
 EOF
 chown 1001:1001 /mnt/semaphore-data/ssh/id_rsa
 chmod 600 /mnt/semaphore-data/ssh/id_rsa
+
+# Setup Liquibase changelog
+echo "[+] Setting up Liquibase changelog..."
+cat > /mnt/liquibase-data/changelog/changelog.xml << 'CHANGELOG_EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="1" author="admin">
+        <comment>Initial setup</comment>
+        <createTable tableName="sample_table">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
+CHANGELOG_EOF
+
+# Setup liquibase properties
+cat > /mnt/liquibase-data/liquibase.properties << 'PROPS_EOF'
+changeLogFile=changelog/changelog.xml
+driver=com.mysql.cj.jdbc.Driver
+classpath=/liquibase/lib/mysql-connector-java.jar
+PROPS_EOF
 
 # Setup SSH config
 echo "[+] Setting up SSH config..."
@@ -129,27 +163,40 @@ services:
             - /mnt/semaphore-data/ssh/id_rsa:/etc/semaphore/id_rsa:ro
             - /mnt/semaphore-data/ssh/config:/etc/semaphore/ssh_config:ro
         networks:
-            - semaphore-net
+            - tools-net
 
-    bytebase:
-        image: bytebase/bytebase:latest
-        container_name: bytebase
+    liquibase:
+        image: liquibase/liquibase:latest
+        container_name: liquibase
         restart: unless-stopped
         init: true
         ports:
             - "8080:8080"
         environment:
-            BB_LOG_LEVEL: info
+            LIQUIBASE_COMMAND_URL: jdbc:mysql://${dev_vm_ip}:3306/mydatabase
+            LIQUIBASE_COMMAND_USERNAME: ${db_username}
+            LIQUIBASE_COMMAND_PASSWORD: ${db_password}
         volumes:
-            - /home/adminuser/.bytebase/data:/var/opt/bytebase
+            - /mnt/liquibase-data:/liquibase
         networks:
-            - bytebase-net
+            - tools-net
+
+    # bytebase:
+    #     image: bytebase/bytebase:latest
+    #     container_name: bytebase
+    #     restart: unless-stopped
+    #     init: true
+    #     ports:
+    #         - "8080:8080"
+    #     environment:
+    #         BB_LOG_LEVEL: info
+    #     volumes:
+    #         - /home/adminuser/.bytebase/data:/var/opt/bytebase
+    #     networks:
+    #         - tools-net
 
 networks:
-    semaphore-net:
-        driver: bridge
-
-    bytebase-net:
+    tools-net:
         driver: bridge
 
 EOF

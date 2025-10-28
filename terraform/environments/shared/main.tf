@@ -109,6 +109,9 @@ resource "azurerm_linux_virtual_machine" "tool" {
     ansible_repo_url = "https://github.com/szuryuu/personal-iac-setup"
     ssh_private_key  = data.azurerm_key_vault_secret.ssh_private_key.value
 
+    db_username = data.azurerm_key_vault_secret.db_username.value
+    db_password = data.azurerm_key_vault_secret.db_password.value
+
     dev_boundary_ip = azurerm_public_ip.boundary_pip.ip_address
     dev_vm_ip       = try(data.terraform_remote_state.dev.outputs.vm_private_ip, "")
 
