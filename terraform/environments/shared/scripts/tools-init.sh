@@ -138,8 +138,6 @@ fi
 # Setup Docker Compose
 echo "[+] Setting up Semaphore with Docker Compose..."
 cat > /home/adminuser/docker-compose.yml << 'EOF'
-version: '3.8'
-
 services:
     semaphore:
         image: semaphoreui/semaphore:latest
