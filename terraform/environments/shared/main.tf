@@ -73,7 +73,7 @@ data "terraform_remote_state" "dev" {
 
 # Tool VM
 resource "azurerm_linux_virtual_machine" "tool" {
-  name                = "shared-tool"
+  name                = "shared-tool-vm"
   admin_username      = "adminuser"
   resource_group_name = var.resource_group_name
   location            = data.azurerm_resource_group.main.location
@@ -129,7 +129,7 @@ resource "azurerm_linux_virtual_machine" "tool" {
 
 # Boundary VM
 resource "azurerm_linux_virtual_machine" "boundary" {
-  name                = "shared-boundary"
+  name                = "shared-boundary-vm"
   resource_group_name = var.resource_group_name
   location            = data.azurerm_resource_group.main.location
   size                = var.vm_size
