@@ -13,6 +13,10 @@ echo "[+] Updating system..."
 apt-get update -y
 apt-get upgrade -y
 
+# Tools
+echo "[+] Installing tools..."
+apt-get install -y percona-toolkit
+
 # Install Docker
 echo "[+] Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -70,6 +74,10 @@ CHANGELOG_EOF
 cat > /mnt/liquibase-data/liquibase.properties << 'PROPS_EOF'
 changeLogFile=changelog/changelog.xml
 driver=com.mysql.cj.jdbc.Driver
+liquibase.ext.percona.dryRun=false
+liquibase.ext.percona.available=true
+liquibase.ext.percona.usePercona=true
+liquibase.ext.percona.ptOnlineSchemaChangePath=/usr/bin/pt-online-schema-change
 PROPS_EOF
 
 # Setup SSH config
@@ -138,6 +146,9 @@ echo "[+] Downloading MySQL JDBC Driver..."
 mkdir -p /mnt/liquibase-data/lib
 curl -L "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar" -o /mnt/liquibase-data/lib/mysql-connector-java.jar
 
+# Percona Extension
+wget https://github.com/liquibase/liquibase-percona/releases/download/v4.20.0/liquibase-percona-4.20.0.jar -O /mnt/liquibase-data/lib/liquibase-percona.jar
+
 # Setup Docker Compose
 echo "[+] Setting up Semaphore with Docker Compose..."
 cat > /home/adminuser/docker-compose.yml << 'EOF'
@@ -179,6 +190,7 @@ services:
             - /mnt/liquibase-data/liquibase.properties:/liquibase/liquibase.properties
             - /mnt/liquibase-data/changelog:/liquibase/changelog
             - /mnt/liquibase-data/lib/mysql-connector-java.jar:/liquibase/lib/mysql-connector-java.jar
+            - /mnt/liquibase-data/lib/liquibase-percona.jar:/liquibase/lib/liquibase-percona.jar
         command: ["sleep", "infinity"]
         networks:
             - tools-net
