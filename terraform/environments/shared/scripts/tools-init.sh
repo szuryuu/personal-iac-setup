@@ -67,6 +67,26 @@ cat > /mnt/liquibase-data/changelog/changelog.xml << 'CHANGELOG_EOF'
         </createTable>
     </changeSet>
 
+    <changeSet id="2" author="admin">
+        <comment>Tambah tabel coba</comment>
+        <createTable tableName="coba">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="deskripsi" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="3" author="admin">
+        <comment>Add email column using Percona online migration</comment>
+        <addColumn tableName="sample_table">
+            <column name="email" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
 CHANGELOG_EOF
 
@@ -147,7 +167,7 @@ mkdir -p /mnt/liquibase-data/lib
 curl -L "https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar" -o /mnt/liquibase-data/lib/mysql-connector-java.jar
 
 # Percona Extension
-wget https://github.com/liquibase/liquibase-percona/releases/download/v4.20.0/liquibase-percona-4.20.0.jar -O /mnt/liquibase-data/lib/liquibase-percona.jar
+wget https://github.com/liquibase/liquibase-percona/releases/download/v4.33.0/liquibase-percona-4.33.0.jar -O /mnt/liquibase-data/lib/liquibase-percona.jar
 
 # Setup Docker Compose
 echo "[+] Setting up Semaphore with Docker Compose..."
