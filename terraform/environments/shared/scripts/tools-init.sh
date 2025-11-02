@@ -198,7 +198,7 @@ services:
             - tools-net
 
     liquibase:
-        image: liquibase/liquibase:latest
+        image: liquibase/liquibase:4.33.0
         container_name: liquibase
         restart: unless-stopped
         init: true
@@ -210,7 +210,7 @@ services:
             - /mnt/liquibase-data/liquibase.properties:/liquibase/liquibase.properties
             - /mnt/liquibase-data/changelog:/liquibase/changelog
             - /mnt/liquibase-data/lib/mysql-connector-java.jar:/liquibase/lib/mysql-connector-java.jar
-            - /mnt/liquibase-data/lib/liquibase-percona.jar:/liquibase/lib/liquibase-percona.jar
+            - /mnt/liquibase-data/lib/liquibase-percona.jar:/liquibase/classpath/liquibase-percona.jar
         command: ["sleep", "infinity"]
         networks:
             - tools-net
