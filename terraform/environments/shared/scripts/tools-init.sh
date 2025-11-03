@@ -13,10 +13,6 @@ echo "[+] Updating system..."
 apt-get update -y
 apt-get upgrade -y
 
-# Tools
-echo "[+] Installing tools..."
-apt-get install -y percona-toolkit
-
 # Install Docker
 echo "[+] Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -53,6 +49,13 @@ cat > /mnt/liquibase-data/changelog/changelog.xml << 'CHANGELOG_EOF'
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <property name="liquibase.percona.defaultOn" value="true"/>
+    <property name="liquibase.percona.skipChanges" value=""/>
+    <property name="liquibase.percona.failIfNoPT" value="false"/>
+    <property name="liquibase.percona.noAlterSqlDryMode" value="false"/>
+    <property name="liquibase.percona.ptOnlineSchemaChangePath" value="/usr/bin/pt-online-schema-change"/>
+    <property name="liquibase.percona.options" value="--alter-foreign-keys-method=auto --max-load=Threads_running=100"/>
 
     <changeSet id="1" author="admin">
         <comment>Initial setup</comment>
@@ -93,14 +96,6 @@ CHANGELOG_EOF
 cat > /mnt/liquibase-data/liquibase.properties << 'PROPS_EOF'
 changeLogFile=changelog/changelog.xml
 driver=com.mysql.cj.jdbc.Driver
-
-liquibase.percona.defaultOn=true
-liquibase.percona.skipChanges=
-liquibase.percona.failIfNoPT=false
-liquibase.percona.noAlterSqlDryMode=false
-liquibase.percona.ptOnlineSchemaChangePath=/usr/bin/pt-online-schema-change
-
-liquibase.percona.options=--alter-foreign-keys-method=auto --max-load=Threads_running=100
 PROPS_EOF
 
 # Setup SSH config
