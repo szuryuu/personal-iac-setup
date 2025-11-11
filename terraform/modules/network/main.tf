@@ -56,16 +56,16 @@ resource "azurerm_network_security_group" "vm_nsg" {
   }
 
   security_rule {
-      name                       = "Allow-MySQL-From-Shared-VNet"
-      priority                   = 130
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = "3306"
-      source_address_prefix      = "VirtualNetwork"
-      destination_address_prefix = "*"
-    }
+    name                       = "Allow-MySQL-From-Shared-VNet"
+    priority                   = 130
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3306"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "*"
+  }
 
   security_rule {
     name                       = "DenyAllInbound"
