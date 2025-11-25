@@ -1,3 +1,10 @@
+# Project Configuration
+variable "project_name" {
+  type        = string
+  description = "The name of the project"
+  default     = "dev-area"
+}
+
 # Azure Configuration
 variable "subscription_id" {
   description = "Azure Subscription ID"
@@ -16,10 +23,26 @@ variable "key_vault_name" {
   description = "The name of the key vault"
 }
 
-variable "project_name" {
+# Networking
+variable "shared_vnet_cidr" {
   type        = string
-  description = "The name of the project"
-  default     = "dev-area"
+  description = "The CIDR block for the shared VNet"
+  default     = "10.0.0.0/16"
+}
+
+variable "tool_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the tool subnet"
+}
+
+variable "observability_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the tool subnet"
+}
+
+variable "boundary_subnet_cidr" {
+  type        = string
+  description = "The CIDR block for the Boundary subnet"
 }
 
 # Virtual Machine
@@ -34,22 +57,4 @@ variable "tool_admin_password" {
   description = "Tool admin password"
   sensitive   = true
   default     = "changeme"
-}
-
-variable "tool_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the tool subnet"
-  default     = "10.0.5.0/24"
-}
-
-variable "shared_vnet_cidr" {
-  type        = string
-  description = "The CIDR block for the shared VNet"
-  default     = "10.0.0.0/16"
-}
-
-variable "boundary_subnet_cidr" {
-  type        = string
-  description = "The CIDR block for the Boundary subnet"
-  default     = "10.0.4.0/24"
 }

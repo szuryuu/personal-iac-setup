@@ -71,6 +71,47 @@ data "terraform_remote_state" "dev" {
 #   }
 # }
 
+# Observability VM
+resource "azurerm_linux_virtual_machine" "observability" {
+  name                = "shared-observability-vm"
+  admin_username      = "adminuser"
+  resource_group_name = var.resource_group_name
+  location            = data.azurerm_resource_group.main
+  size                = var.vm_size
+
+  disable_password_authentication = true
+  provision_vm_agent              = true
+  allow_extension_operations      = false
+
+  network_interface_ids = [azurerm_network_interface.observability_nic.id]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = data.azurerm_key_vault_secret.ssh_public_key.value
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = 64
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  custom_data = base64encode(templatefile("${path.module}/scripts/grafana-init.sh", {}))
+
+  tags = {
+    environment = "shared"
+    project     = var.project_name
+    role        = "observability"
+  }
+}
+
 # Tool VM
 resource "azurerm_linux_virtual_machine" "tool" {
   name                = "shared-tool-vm"
