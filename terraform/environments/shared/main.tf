@@ -76,7 +76,7 @@ resource "azurerm_linux_virtual_machine" "observability" {
   name                = "shared-observability-vm"
   admin_username      = "adminuser"
   resource_group_name = var.resource_group_name
-  location            = data.azurerm_resource_group.main
+  location            = data.azurerm_resource_group.main.location
   size                = var.vm_size
 
   disable_password_authentication = true

@@ -29,7 +29,7 @@ apt-get update -y
 
 # Installing grafana
 echo "[+] Installing grafana"
-sudo apt-get install grafana
+sudo apt-get install grafana -y
 
 # Start grafana
 echo "[+] Enabling and starting Grafana service..."

@@ -11,7 +11,7 @@ resource "azurerm_virtual_network" "shared" {
 # Subnet for observability
 resource "azurerm_subnet" "observability_subnet" {
   name                 = "shared-observability-subnet"
-  resource_group_name  = data.azurerm_resource_group.main
+  resource_group_name  = data.azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.shared.name
   address_prefixes     = [var.observability_subnet_cidr]
 }
