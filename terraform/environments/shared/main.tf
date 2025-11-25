@@ -103,7 +103,11 @@ resource "azurerm_linux_virtual_machine" "observability" {
     version   = "latest"
   }
 
-  custom_data = base64encode(templatefile("${path.module}/scripts/grafana-init.sh", {}))
+  custom_data = base64encode(templatefile("${path.module}/scripts/observability-init.sh", {
+    dev_private_ip     = try(data.terraform_remote_state.dev.outputs.vm_private_ip, "")
+    staging_private_ip = ""
+    prod_private_ip    = ""
+  }))
 
   tags = {
     environment = "shared"

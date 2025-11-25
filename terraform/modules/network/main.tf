@@ -68,6 +68,18 @@ resource "azurerm_network_security_group" "vm_nsg" {
   }
 
   security_rule {
+    name                       = "Allow-NodeExporter-From-Shared"
+    priority                   = 140
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9100"
+    source_address_prefix      = "10.100.0.0/16"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
     name                       = "DenyAllInbound"
     priority                   = 4000
     direction                  = "Inbound"
